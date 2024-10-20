@@ -17,7 +17,7 @@ public class AnimationLoader
 
         for (String path : paths)
         {
-            try (InputStream is = AnimationLoader.class.getResourceAsStream(path))
+            try (InputStream is = AnimationLoader.class.getClassLoader().getResourceAsStream(path))
             {
                 if (is == null)
                 {

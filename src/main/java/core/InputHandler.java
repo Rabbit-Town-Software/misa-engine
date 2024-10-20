@@ -3,9 +3,11 @@ package core;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
-public class InputHandler {
+public class InputHandler
+{
 
-    public static void setupKeyBindings(JComponent component, String key, Runnable onPress, Runnable onRelease) {
+    public static void setupKeyBindings(JComponent component, String key, Runnable onPress, Runnable onRelease)
+    {
         // Key pressed
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(key), key + "Press");
         component.getActionMap().put(key + "Press", new AbstractAction() {
