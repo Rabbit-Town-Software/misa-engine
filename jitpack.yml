@@ -1,2 +1,2 @@
 jdk:
-  version: openjdk23
+  - openjdk23
