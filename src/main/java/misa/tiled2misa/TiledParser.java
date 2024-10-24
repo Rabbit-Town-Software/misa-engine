@@ -13,6 +13,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -56,11 +57,12 @@ public class TiledParser
         try
         {
             Document document = parseXMLStream(inputStream);
+            LOGGER.info("Successfully parsed XML document from InputStream.");
             return createTiledMapFromDocument(document);
         }
         catch (Exception e)
         {
-            LOGGER.severe("Failed to load map from InputStream.");
+            LOGGER.log(Level.SEVERE, "Failed to load map from InputStream.", e);
             return null;
         }
     }
@@ -90,11 +92,20 @@ public class TiledParser
      */
     private Document parseXMLStream(InputStream inputStream) throws Exception
     {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
-        Document document = documentBuilder.parse(inputStream);
-        document.getDocumentElement().normalize();
-        return document;
+        try
+        {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
+            Document document = documentBuilder.parse(inputStream);
+            document.getDocumentElement().normalize();
+            LOGGER.info("XML parsing completed successfully.");
+            return document;
+        }
+        catch (Exception e)
+        {
+            LOGGER.log(Level.SEVERE, "Error parsing XML from InputStream.", e);
+            throw e;
+        }
     }
 
     /**
@@ -157,9 +168,24 @@ public class TiledParser
             Element tilesetElement = (Element) tilesetNodes.item(i);
             String source = tilesetElement.getAttribute("source");
             int firstGID = getIntAttribute(tilesetElement, "firstgid");
-            tilesets.add(new TiledTileset(source, firstGID));
 
-            LOGGER.info("Loaded tileset: " + source + " (firstGID: " + firstGID + ")");
+            try (InputStream tsxStream = getClass().getClassLoader().getResourceAsStream(source))
+            {
+                if (tsxStream == null)
+                {
+                    LOGGER.severe("Failed to find tileset file: " + source);
+                    continue;
+                }
+
+                // Assuming you have some method to parse the .tsx file from the InputStream
+                // You could add more specific logging here if the parsing fails
+                tilesets.add(new TiledTileset(source, firstGID));
+                LOGGER.info("Successfully loaded tileset: " + source + " (firstGID: " + firstGID + ")");
+            }
+            catch (Exception e)
+            {
+                LOGGER.log(Level.SEVERE, "Error loading tileset: " + source, e);
+            }
         }
         return tilesets;
     }
@@ -182,31 +208,38 @@ public class TiledParser
             int layerWidth = getIntAttribute(layerElement, "width");
             int layerHeight = getIntAttribute(layerElement, "height");
 
+            LOGGER.info("Parsing layer: " + layerName);
+
             // parse the data based on encoding
             Element dataElement = (Element) layerElement.getElementsByTagName("data").item(0);
             String encoding = dataElement.getAttribute("encoding");
             int[][] tileData;
 
-            if ("csv".equalsIgnoreCase(encoding))
+            try
             {
-                tileData = decodeCSVTileData(dataElement.getTextContent().trim(),
-                        layerWidth, layerHeight);
-            }
-            else if ("base64".equalsIgnoreCase(encoding))
-            {
-                tileData = decodeBase64TileData(dataElement.getTextContent().trim(),
-                        layerWidth, layerHeight);
-            }
-            else
-            {
-                LOGGER.warning("Unsupported encoding: " + encoding);
-                continue; // skip layer if the encoding is not supported
-            }
+                if ("csv".equalsIgnoreCase(encoding))
+                {
+                    tileData = decodeCSVTileData(dataElement.getTextContent().trim(), layerWidth, layerHeight);
+                    LOGGER.info("Successfully decoded CSV tile data for layer: " + layerName);
+                }
+                else if ("base64".equalsIgnoreCase(encoding))
+                {
+                    tileData = decodeBase64TileData(dataElement.getTextContent().trim(), layerWidth, layerHeight);
+                    LOGGER.info("Successfully decoded Base64 tile data for layer: " + layerName);
+                }
+                else
+                {
+                    LOGGER.warning("Unsupported encoding: " + encoding + " for layer: " + layerName);
+                    continue; // skip layer if the encoding is not supported
+                }
 
-            layers.add(new TiledLayer(layerName, layerWidth, layerHeight, tileData));
-
-            LOGGER.info("Loaded layer: " + layerName +
-                    " (" + layerWidth + "x" + layerHeight + ")");
+                layers.add(new TiledLayer(layerName, layerWidth, layerHeight, tileData));
+                LOGGER.info("Loaded layer: " + layerName + " (" + layerWidth + "x" + layerHeight + ")");
+            }
+            catch (Exception e)
+            {
+                LOGGER.log(Level.SEVERE, "Failed to parse layer: " + layerName, e);
+            }
         }
         return layers;
     }
