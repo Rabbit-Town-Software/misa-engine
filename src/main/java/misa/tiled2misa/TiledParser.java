@@ -25,6 +25,19 @@ public class TiledParser
 {
     private static final Logger LOGGER = Logger.getLogger(TiledParser.class.getName());
 
+    // Base path for resources, can be customized by the game project
+    private String resourceBasePath = "";
+
+    public void setResourceBasePath(String basePath)
+    {
+        // Ensure the base path ends with a slash to make path concatenation easier
+        if (!basePath.endsWith("/"))
+        {
+            basePath += "/";
+        }
+        this.resourceBasePath = basePath;
+    }
+
     /**
      * Load a TiledMap object from a TMX file path
      *
@@ -169,22 +182,24 @@ public class TiledParser
             String source = tilesetElement.getAttribute("source");
             int firstGID = getIntAttribute(tilesetElement, "firstgid");
 
-            try (InputStream tsxStream = getClass().getClassLoader().getResourceAsStream(source))
+            // Construct the full path to the tileset using the resource base path
+            String fullPath = resourceBasePath + source;
+
+            try (InputStream tsxStream = getClass().getClassLoader().getResourceAsStream(fullPath))
             {
                 if (tsxStream == null)
                 {
-                    LOGGER.severe("Failed to find tileset file: " + source);
+                    LOGGER.severe("Failed to find tileset file: " + fullPath);
                     continue;
                 }
 
                 // Assuming you have some method to parse the .tsx file from the InputStream
-                // You could add more specific logging here if the parsing fails
-                tilesets.add(new TiledTileset(source, firstGID));
-                LOGGER.info("Successfully loaded tileset: " + source + " (firstGID: " + firstGID + ")");
+                tilesets.add(new TiledTileset(fullPath, firstGID));
+                LOGGER.info("Successfully loaded tileset: " + fullPath + " (firstGID: " + firstGID + ")");
             }
             catch (Exception e)
             {
-                LOGGER.log(Level.SEVERE, "Error loading tileset: " + source, e);
+                LOGGER.log(Level.SEVERE, "Error loading tileset: " + fullPath, e);
             }
         }
         return tilesets;
