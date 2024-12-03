@@ -6,28 +6,19 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * represents a parsed Tiled map with various attributes
- * these attributes include: map size, tile size, layers, tilesets, and objects.
+ * Represents a parsed Tiled map with attributes such as map size, tile size, layers, tilesets, and objects.
  */
 @SuppressWarnings("unused")
 public class TiledMap
 {
     private static final Logger LOGGER = Logger.getLogger(TiledMap.class.getName());
 
-    // map dimensions
     private final int width, height;
     private final int tileWidth, tileHeight;
-
-    // lists of map components
     private final List<TiledLayer> layers;
     private final List<TiledTileset> tilesets;
     private final List<TiledObject> objects;
 
-    /**
-     * private constructor for TiledMap. Use the Builder to create instances
-     *
-     * @param builder builder object that contains all the data needed for constructing a TiledMap.
-     */
     private TiledMap(Builder builder)
     {
         this.width = builder.width;
@@ -43,58 +34,28 @@ public class TiledMap
 
         if (layers.isEmpty())
         {
-            LOGGER.warning("TiledMap has no layers. This may cause issues during rendering. ");
+            LOGGER.warning("TiledMap has no layers. This may cause rendering issues.");
         }
         if (tilesets.isEmpty())
         {
-            LOGGER.warning("TiledMap has no tilesets. Check if the map was parsed correctly. ");
+            LOGGER.warning("TiledMap has no tilesets. Ensure the map was parsed correctly.");
         }
         if (objects.isEmpty())
         {
-            LOGGER.info("TiledMap contains no objects. Check if the map was parsed correctly. ");
+            LOGGER.info("TiledMap contains no objects.");
         }
     }
 
-    // getters for map dimensions
-    public int getWidth()
-    {
-        return width;
-    }
-
-    public int getHeight()
-    {
-        return height;
-    }
-
-    public int getTileWidth()
-    {
-        return tileWidth;
-    }
-
-    public int getTileHeight()
-    {
-        return tileHeight;
-    }
-
-    // getters for map components
-    public List<TiledLayer> getLayers()
-    {
-        return layers;
-    }
-
-    public List<TiledTileset> getTilesets()
-    {
-        return tilesets;
-    }
-
-    public List<TiledObject> getObjects()
-    {
-        return objects;
-    }
+    public int getWidth() { return width; }
+    public int getHeight() { return height; }
+    public int getTileWidth() { return tileWidth; }
+    public int getTileHeight() { return tileHeight; }
+    public List<TiledLayer> getLayers() { return layers; }
+    public List<TiledTileset> getTilesets() { return tilesets; }
+    public List<TiledObject> getObjects() { return objects; }
 
     /**
-     * Builder class for creating TiledMap instances
-     * use this to set parameters and construct a TiledMap object
+     * Builder class for creating TiledMap instances.
      */
     public static class Builder
     {
@@ -104,106 +65,23 @@ public class TiledMap
         private List<TiledTileset> tilesets = new ArrayList<>();
         private List<TiledObject> objects = new ArrayList<>();
 
-        /**
-         * sets the map width
-         *
-         * @param width The width of the map in tiles
-         * @return the Builder object for chaining
-         */
-        public Builder setWidth(int width)
-        {
-            this.width = width;
-            return this;
-        }
+        public Builder setWidth(int width) { this.width = width; return this; }
+        public Builder setHeight(int height) { this.height = height; return this; }
+        public Builder setTileWidth(int tileWidth) { this.tileWidth = tileWidth; return this; }
+        public Builder setTileHeight(int tileHeight) { this.tileHeight = tileHeight; return this; }
+        public Builder setLayers(List<TiledLayer> layers) { this.layers = new ArrayList<>(layers); return this; }
+        public Builder setTilesets(List<TiledTileset> tilesets) { this.tilesets = new ArrayList<>(tilesets); return this; }
+        public Builder setObjects(List<TiledObject> objects) { this.objects = new ArrayList<>(objects); return this; }
 
-        /**
-         * sets the map height
-         *
-         * @param height The height of the map in tiles
-         * @return the Builder object for chaining
-         */
-        public Builder setHeight(int height)
-        {
-            this.height = height;
-            return this;
-        }
-
-        /**
-         * sets the tile width
-         *
-         * @param tileWidth the width of each tile in pixels
-         * @return the Builder object for chaining
-         */
-        public Builder setTileWidth(int tileWidth)
-        {
-            this.tileWidth = tileWidth;
-            return this;
-        }
-
-        /**
-         * sets the tile height
-         *
-         * @param tileHeight the height of each tile in pixels
-         * @return the Builder object for chaining
-         */
-        public Builder setTileHeight(int tileHeight)
-        {
-            this.tileHeight = tileHeight;
-            return this;
-        }
-
-        /**
-         * sets the layers of the map
-         *
-         * @param layers the list of TiledLayer objects
-         * @return The Builder object for chaining
-         */
-        public Builder setLayers(List<TiledLayer> layers)
-        {
-            this.layers = new ArrayList<>(layers);
-            return this;
-        }
-
-        /**
-         * sets the tilesets of the map
-         *
-         * @param tilesets the list of TiledTileset objects
-         * @return the Builder object for chaining
-         */
-        public Builder setTilesets(List<TiledTileset> tilesets)
-        {
-            this.tilesets = new ArrayList<>(tilesets);
-            return this;
-        }
-
-        /**
-         * sets the objects present in the map
-         *
-         * @param objects the list of TiledObject objects
-         * @return the Builder object for chaining
-         */
-        public Builder setObjects(List<TiledObject> objects)
-        {
-            this.objects = new ArrayList<>(objects);
-            return this;
-        }
-
-        /**
-         * builds and returns the TiledMap instance
-         *
-         * @return the constructed TiledMap object
-         */
         public TiledMap build()
         {
             if (width <= 0 || height <= 0)
             {
-                LOGGER.warning("Invalid map dimensions set in Builder: "
-                        + width + "x" + height);
+                LOGGER.warning("Invalid map dimensions: " + width + "x" + height);
             }
             if (tileWidth <= 0 || tileHeight <= 0)
             {
-                LOGGER.warning("Invalid tile dimensions set in Builder: "
-                        + tileWidth + "x" + tileHeight);
+                LOGGER.warning("Invalid tile dimensions: " + tileWidth + "x" + tileHeight);
             }
             return new TiledMap(this);
         }

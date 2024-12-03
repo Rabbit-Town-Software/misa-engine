@@ -3,16 +3,13 @@ package misa.tiled2misa;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,12 +22,10 @@ public class TiledParser
 {
     private static final Logger LOGGER = Logger.getLogger(TiledParser.class.getName());
 
-    // Base path for resources, can be customized by the game project
     private String resourceBasePath = "";
 
     public void setResourceBasePath(String basePath)
     {
-        // Ensure the base path ends with a slash to make path concatenation easier
         if (!basePath.endsWith("/"))
         {
             basePath += "/";
@@ -38,12 +33,6 @@ public class TiledParser
         this.resourceBasePath = basePath;
     }
 
-    /**
-     * Load a TiledMap object from a TMX file path
-     *
-     * @param filePath the path for the TMX file
-     * @return The parsed TiledMap object
-     */
     public TiledMap loadFromTMX(String filePath)
     {
         try
@@ -59,12 +48,6 @@ public class TiledParser
         }
     }
 
-    /**
-     * Load a TiledMap object from an InputStream (e.g., resource stream)
-     *
-     * @param inputStream the InputStream for the TMX file
-     * @return The parsed TiledMap object
-     */
     public TiledMap loadFromInputStream(InputStream inputStream)
     {
         try
@@ -80,13 +63,6 @@ public class TiledParser
         }
     }
 
-    /**
-     * Parses the XML file to create a Document object
-     *
-     * @param file The XML file
-     * @return The parsed Document object
-     * @throws Exception if parsing fails
-     */
     private Document parseXMLFile(File file) throws Exception
     {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -96,52 +72,28 @@ public class TiledParser
         return document;
     }
 
-    /**
-     * Parses an XML InputStream to create a Document object
-     *
-     * @param inputStream The InputStream for the XML data
-     * @return The parsed Document object
-     * @throws Exception if parsing fails
-     */
     private Document parseXMLStream(InputStream inputStream) throws Exception
     {
-        try
-        {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
-            Document document = documentBuilder.parse(inputStream);
-            document.getDocumentElement().normalize();
-            LOGGER.info("XML parsing completed successfully.");
-            return document;
-        }
-        catch (Exception e)
-        {
-            LOGGER.log(Level.SEVERE, "Error parsing XML from InputStream.", e);
-            throw e;
-        }
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
+        Document document = documentBuilder.parse(inputStream);
+        document.getDocumentElement().normalize();
+        LOGGER.info("XML parsing completed successfully.");
+        return document;
     }
 
-    /**
-     * Core method to create a TiledMap from a parsed XML Document
-     *
-     * @param document The XML Document object
-     * @return The TiledMap object created from the document
-     */
     private TiledMap createTiledMapFromDocument(Document document)
     {
-        // parse map attributes
         Element mapElement = document.getDocumentElement();
         int mapWidth = getIntAttribute(mapElement, "width");
         int mapHeight = getIntAttribute(mapElement, "height");
         int tileWidth = getIntAttribute(mapElement, "tilewidth");
         int tileHeight = getIntAttribute(mapElement, "tileheight");
 
-        // parse tilesets, layers, and object layers
         List<TiledTileset> tilesets = parseTilesets(document);
         List<TiledLayer> layers = parseLayers(document);
         List<TiledObject> objects = parseObjectLayers(document);
 
-        // use Builder to create the TiledMap
         return new TiledMap.Builder()
                 .setWidth(mapWidth)
                 .setHeight(mapHeight)
@@ -153,24 +105,19 @@ public class TiledParser
                 .build();
     }
 
-    /**
-     * retrieves integer attributes from an XML element
-     *
-     * @param element The XML element
-     * @param attribute The attribute name
-     * @return The integer value of the attribute
-     */
     private int getIntAttribute(Element element, String attribute)
     {
-        return Integer.parseInt(element.getAttribute(attribute));
+        try
+        {
+            return Integer.parseInt(element.getAttribute(attribute));
+        }
+        catch (NumberFormatException e)
+        {
+            LOGGER.warning("Invalid integer attribute: " + attribute);
+            return 0;
+        }
     }
 
-    /**
-     * parses tilesets from the TMX document
-     *
-     * @param document The TMX document
-     * @return A list of TiledTileset objects
-     */
     private List<TiledTileset> parseTilesets(Document document)
     {
         List<TiledTileset> tilesets = new ArrayList<>();
@@ -182,35 +129,42 @@ public class TiledParser
             String source = tilesetElement.getAttribute("source");
             int firstGID = getIntAttribute(tilesetElement, "firstgid");
 
-            // Construct the full path to the tileset using the resource base path
-            String fullPath = resourceBasePath + source;
+            String tsxPath = resourceBasePath + source;
+            String imagePath = extractImagePathFromTSX(tsxPath);
 
-            try (InputStream tsxStream = getClass().getClassLoader().getResourceAsStream(fullPath))
+            if (imagePath != null)
             {
-                if (tsxStream == null)
-                {
-                    LOGGER.severe("Failed to find tileset file: " + fullPath);
-                    continue;
-                }
-
-                // Assuming you have some method to parse the .tsx file from the InputStream
-                tilesets.add(new TiledTileset(fullPath, firstGID));
-                LOGGER.info("Successfully loaded tileset: " + fullPath + " (firstGID: " + firstGID + ")");
-            }
-            catch (Exception e)
-            {
-                LOGGER.log(Level.SEVERE, "Error loading tileset: " + fullPath, e);
+                tilesets.add(new TiledTileset(imagePath, firstGID));
+                LOGGER.info("Successfully loaded tileset: " + tsxPath + " (image: " + imagePath + ")");
             }
         }
         return tilesets;
     }
 
-    /**
-     * parses tile layers from the TMX document
-     *
-     * @param document The TMX document
-     * @return A list of TiledLayer objects
-     */
+    private String extractImagePathFromTSX(String tsxPath)
+    {
+        try (InputStream tsxStream = getClass().getClassLoader().getResourceAsStream(tsxPath))
+        {
+            if (tsxStream == null)
+            {
+                LOGGER.severe("Failed to find .tsx file: " + tsxPath);
+                return null;
+            }
+
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
+            Document document = documentBuilder.parse(tsxStream);
+
+            Element imageElement = (Element) document.getElementsByTagName("image").item(0);
+            return resourceBasePath + imageElement.getAttribute("source");
+        }
+        catch (Exception e)
+        {
+            LOGGER.log(Level.SEVERE, "Failed to parse .tsx file: " + tsxPath, e);
+            return null;
+        }
+    }
+
     private List<TiledLayer> parseLayers(Document document)
     {
         List<TiledLayer> layers = new ArrayList<>();
@@ -225,31 +179,27 @@ public class TiledParser
 
             LOGGER.info("Parsing layer: " + layerName);
 
-            // parse the data based on encoding
             Element dataElement = (Element) layerElement.getElementsByTagName("data").item(0);
             String encoding = dataElement.getAttribute("encoding");
-            int[][] tileData;
+            long[][] tileData;
 
             try
             {
                 if ("csv".equalsIgnoreCase(encoding))
                 {
                     tileData = decodeCSVTileData(dataElement.getTextContent().trim(), layerWidth, layerHeight);
-                    LOGGER.info("Successfully decoded CSV tile data for layer: " + layerName);
                 }
                 else if ("base64".equalsIgnoreCase(encoding))
                 {
                     tileData = decodeBase64TileData(dataElement.getTextContent().trim(), layerWidth, layerHeight);
-                    LOGGER.info("Successfully decoded Base64 tile data for layer: " + layerName);
                 }
                 else
                 {
                     LOGGER.warning("Unsupported encoding: " + encoding + " for layer: " + layerName);
-                    continue; // skip layer if the encoding is not supported
+                    continue;
                 }
 
                 layers.add(new TiledLayer(layerName, layerWidth, layerHeight, tileData));
-                LOGGER.info("Loaded layer: " + layerName + " (" + layerWidth + "x" + layerHeight + ")");
             }
             catch (Exception e)
             {
@@ -259,17 +209,9 @@ public class TiledParser
         return layers;
     }
 
-    /**
-     * decodes CSV tile data from the TMX document
-     *
-     * @param csvData The CSV data string
-     * @param width The width of the layer
-     * @param height The height of the layer
-     * @return A 2D array of tile IDs
-     */
-    private int[][] decodeCSVTileData(String csvData, int width, int height)
+    private long[][] decodeCSVTileData(String csvData, int width, int height)
     {
-        int[][] tileData = new int[height][width];
+        long[][] tileData = new long[height][width];
         String[] tokens = csvData.split(",");
 
         for (int row = 0; row < height; row++)
@@ -277,47 +219,28 @@ public class TiledParser
             for (int col = 0; col < width; col++)
             {
                 int index = row * width + col;
-                tileData[row][col] = Integer.parseInt(tokens[index].trim());
+                tileData[row][col] = Long.parseLong(tokens[index].trim());
             }
         }
-
-        LOGGER.info("Successfully decoded CSV tile data for layer (" + width + "x" + height + ")");
         return tileData;
     }
 
-    /**
-     * decodes Base64 tile data from the TMX document
-     *
-     * @param encodedData The Base64 encoded data string
-     * @param width The width of the layer
-     * @param height The height of the layer
-     * @return A 2D array of tile IDs
-     */
-    private int[][] decodeBase64TileData(String encodedData, int width, int height)
+    private long[][] decodeBase64TileData(String encodedData, int width, int height)
     {
         byte[] decodedData = Base64.getDecoder().decode(encodedData);
         ByteBuffer buffer = ByteBuffer.wrap(decodedData);
-        int[][] tileData = new int[height][width];
+        long[][] tileData = new long[height][width];
 
         for (int row = 0; row < height; row++)
         {
             for (int col = 0; col < width; col++)
             {
-                int tileID = buffer.getInt();
-                tileData[row][col] = tileID;
+                tileData[row][col] = buffer.getInt() & 0xFFFFFFFFL;
             }
         }
-
-        LOGGER.info("Successfully decoded Base64 tile data for layer (" + width + "x" + height + ")");
         return tileData;
     }
 
-    /**
-     * parses object layers from the TMX document
-     *
-     * @param document The TMX document
-     * @return A list of TiledObject objects
-     */
     private List<TiledObject> parseObjectLayers(Document document)
     {
         List<TiledObject> objects = new ArrayList<>();
@@ -331,26 +254,17 @@ public class TiledParser
             for (int j = 0; j < objectNodes.getLength(); j++)
             {
                 Element objectElement = (Element) objectNodes.item(j);
-                TiledObject tiledObject = getObject(objectElement);
-                objects.add(tiledObject);
+                objects.add(getObject(objectElement));
             }
-
-            LOGGER.info("Loaded object group with " + objectNodes.getLength() + " objects.");
         }
         return objects;
     }
 
-    /**
-     * parses a single TiledObject from an XML element
-     *
-     * @param objectElement The XML element representing the object
-     * @return The parsed TiledObject
-     */
     private static TiledObject getObject(Element objectElement)
     {
         int id = Integer.parseInt(objectElement.getAttribute("id"));
-        String name = objectElement.getAttribute("name");
-        String type = objectElement.getAttribute("type");
+        String name = objectElement.hasAttribute("name") ? objectElement.getAttribute("name") : "Unnamed";
+        String type = objectElement.hasAttribute("type") ? objectElement.getAttribute("type") : "Undefined";
         double x = Double.parseDouble(objectElement.getAttribute("x"));
         double y = Double.parseDouble(objectElement.getAttribute("y"));
         double width = objectElement.hasAttribute("width") ?
@@ -358,18 +272,13 @@ public class TiledParser
         double height = objectElement.hasAttribute("height") ?
                 Double.parseDouble(objectElement.getAttribute("height")) : 0;
 
-        // parse object properties
         Map<String, String> properties = new HashMap<>();
         NodeList propertyNodes = objectElement.getElementsByTagName("property");
         for (int p = 0; p < propertyNodes.getLength(); p++)
         {
             Element propertyElement = (Element) propertyNodes.item(p);
-            String propName = propertyElement.getAttribute("name");
-            String propValue = propertyElement.getAttribute("value");
-            properties.put(propName, propValue);
+            properties.put(propertyElement.getAttribute("name"), propertyElement.getAttribute("value"));
         }
-
-        LOGGER.info("Loaded object: " + name + " (Type: " + type + ", ID: " + id + ")");
 
         return new TiledObject(id, name, type, x, y, width, height, properties);
     }
