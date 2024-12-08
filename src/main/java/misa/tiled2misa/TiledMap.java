@@ -6,19 +6,29 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Represents a parsed Tiled map with attributes such as map size, tile size, layers, tilesets, and objects.
+ * Represents a parsed Tiled map.
+ * <p>
+ * - Stores information about map dimensions, tile sizes, layers, tilesets, and objects.
+ * - Provides read-only access to its attributes after construction via the builder pattern.
  */
 @SuppressWarnings("unused")
 public class TiledMap
 {
     private static final Logger LOGGER = Logger.getLogger(TiledMap.class.getName());
 
-    private final int width, height;
-    private final int tileWidth, tileHeight;
-    private final List<TiledLayer> layers;
-    private final List<TiledTileset> tilesets;
-    private final List<TiledObject> objects;
+    private final int width;  // Width of the map in tiles
+    private final int height; // Height of the map in tiles
+    private final int tileWidth;  // Width of individual tiles in pixels
+    private final int tileHeight; // Height of individual tiles in pixels
+    private final List<TiledLayer> layers;    // List of layers in the map
+    private final List<TiledTileset> tilesets; // List of tilesets used by the map
+    private final List<TiledObject> objects;  // List of objects defined in the map
 
+    /**
+     * Private constructor used by the Builder class.
+     * <p>
+     * Validates the attributes and logs warnings if any critical data is missing.
+     */
     private TiledMap(Builder builder)
     {
         this.width = builder.width;
@@ -29,12 +39,13 @@ public class TiledMap
         this.tilesets = Collections.unmodifiableList(builder.tilesets);
         this.objects = Collections.unmodifiableList(builder.objects);
 
-        LOGGER.info("TiledMap created with dimensions: "
-                + width + "x" + height + " and tile size: " + tileWidth + "x" + tileHeight);
+        // Log map creation details and potential issues
+        LOGGER.info("TiledMap created with dimensions: " +
+                width + "x" + height + " and tile size: " + tileWidth + "x" + tileHeight);
 
         if (layers.isEmpty())
         {
-            LOGGER.warning("TiledMap has no layers. This may cause rendering issues.");
+            LOGGER.warning("TiledMap has no layers. Rendering may fail.");
         }
         if (tilesets.isEmpty())
         {
@@ -46,6 +57,7 @@ public class TiledMap
         }
     }
 
+    // Getters for map attributes
     public int getWidth() { return width; }
     public int getHeight() { return height; }
     public int getTileWidth() { return tileWidth; }
@@ -55,7 +67,9 @@ public class TiledMap
     public List<TiledObject> getObjects() { return objects; }
 
     /**
-     * Builder class for creating TiledMap instances.
+     * Builder class for creating instances of TiledMap.
+     * <p>
+     * Ensures all attributes are properly set before the TiledMap is constructed.
      */
     public static class Builder
     {
@@ -65,6 +79,7 @@ public class TiledMap
         private List<TiledTileset> tilesets = new ArrayList<>();
         private List<TiledObject> objects = new ArrayList<>();
 
+        // Setters for attributes, returning the Builder instance for chaining
         public Builder setWidth(int width) { this.width = width; return this; }
         public Builder setHeight(int height) { this.height = height; return this; }
         public Builder setTileWidth(int tileWidth) { this.tileWidth = tileWidth; return this; }
@@ -73,6 +88,13 @@ public class TiledMap
         public Builder setTilesets(List<TiledTileset> tilesets) { this.tilesets = new ArrayList<>(tilesets); return this; }
         public Builder setObjects(List<TiledObject> objects) { this.objects = new ArrayList<>(objects); return this; }
 
+        /**
+         * Builds and returns a TiledMap instance.
+         * <p>
+         * 1. Ensure all critical attributes (e.g., dimensions) are valid.
+         * 2. Log warnings if any critical data (e.g., layers or tilesets) is missing.
+         * 3. Return a new TiledMap instance.
+         */
         public TiledMap build()
         {
             if (width <= 0 || height <= 0)

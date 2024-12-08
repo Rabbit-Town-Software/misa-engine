@@ -12,7 +12,8 @@ repositories {
 
 dependencies {
     implementation 'javax.json:javax.json-api:1.1.4'
-    implementation 'org.glassfish:javax.json:1.1.4' // Include the GlassFish implementation
+    implementation 'org.glassfish:javax.json:1.1.4'
+    implementation 'org.luaj:luaj-jse:3.0.1'
 }
 
 

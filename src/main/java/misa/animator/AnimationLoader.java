@@ -1,5 +1,8 @@
 package misa.animator;
 
+import misa.scripting.LuaManager;
+import org.luaj.vm2.LuaValue;
+
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.IOException;
@@ -11,26 +14,37 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
- * this class is responsible for loading arrays of images into BufferedImage arrays
- * these BufferedImage arrays can then be used in animation
+ * Responsible for loading image arrays into BufferedImage arrays,
+ * which can then be utilized for animations in the game engine.
+ * Relies on LuaManager for Lua scripting.
  */
 @SuppressWarnings("unused")
 public class AnimationLoader
 {
     private static final Logger LOGGER = Logger.getLogger(AnimationLoader.class.getName());
+    private static final ConcurrentHashMap<String, BufferedImage>
+            IMAGE_CACHE = new ConcurrentHashMap<>();
 
-    // cache to store all loaded images in order to prevent duplicate loading
-    private static final ConcurrentHashMap<String, BufferedImage> imageCache = new ConcurrentHashMap<>();
+    private final LuaManager luaManager;
 
     /**
-     * returns an array of images which can then be used in the animator
+     * Constructor to initialize with a LuaManager instance.
      *
-     * @param paths array of file paths from where to load images
-     * @return returns an array of images which can be used in the animator
+     * @param luaManager The LuaManager to handle Lua script execution.
+     */
+    public AnimationLoader(LuaManager luaManager)
+    {
+        this.luaManager = luaManager;
+    }
+
+    /**
+     * Loads an array of images from the specified file paths.
+     *
+     * @param paths An array of file paths pointing to the images to load.
+     * @return A BufferedImage array containing the loaded images.
      */
     public static BufferedImage[] loadAnimations(String[] paths)
     {
-        // uses parallel streams to load the images at the same time for better performance.
         List<BufferedImage> images = Stream.of(paths)
                 .parallel()
                 .map(AnimationLoader::loadImage)
@@ -39,20 +53,42 @@ public class AnimationLoader
     }
 
     /**
-     * loads images from the path and uses caching to avoid loading the same image multiple times
+     * Loads an array of images from a Lua script that defines file paths.
      *
-     * @param path the file path for the image
-     * @return the image, or null if the image failed to load
+     * @param luaScript A Lua script defining an array of file paths.
+     * @return A BufferedImage array containing the loaded images.
+     */
+    public BufferedImage[] loadAnimationsFromLua(String luaScript)
+    {
+        LuaValue result = luaManager.loadScript(luaScript);
+
+        if (!result.istable())
+        {
+            LOGGER.warning("Lua script must return a table of file paths.");
+            return new BufferedImage[0];
+        }
+
+        List<BufferedImage> images = Stream.of(result.checktable().keys())
+                .parallel()
+                .map(key -> loadImage(result.get(key).tojstring()))
+                .toList();
+
+        return images.toArray(new BufferedImage[0]);
+    }
+
+    /**
+     * Loads an image from the specified file path and caches it to avoid redundant loading.
+     *
+     * @param path The file path of the image to load.
+     * @return The loaded BufferedImage, or null if loading fails.
      */
     private static BufferedImage loadImage(String path)
     {
-        // check if the image is already cached
-        if (imageCache.containsKey(path))
+        if (IMAGE_CACHE.containsKey(path))
         {
-            return imageCache.get(path);
+            return IMAGE_CACHE.get(path);
         }
 
-        // load the image
         try (InputStream is = AnimationLoader.class.getClassLoader().getResourceAsStream(path))
         {
             if (is == null)
@@ -61,12 +97,11 @@ public class AnimationLoader
                 return null;
             }
 
-            // read image from input stream and cache it
             BufferedImage image = ImageIO.read(is);
             if (image != null)
             {
-                imageCache.put(path, image);
-                LOGGER.info("Image loaded: " + path);
+                IMAGE_CACHE.put(path, image);
+                LOGGER.info("Image loaded and cached: " + path);
             }
             return image;
         }
