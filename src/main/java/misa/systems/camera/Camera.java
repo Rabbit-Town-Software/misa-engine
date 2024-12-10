@@ -13,11 +13,11 @@ import java.awt.*;
 public class Camera
 {
     // Current position of the camera in world coordinates
-    float x;
-    float y;
+    private float x;
+    private float y;
 
     // Current zoom level of the camera
-    float zoom;
+    private float zoom;
 
     // Target position and zoom that the camera is transitioning towards
     private float targetX, targetY, targetZoom;
@@ -153,5 +153,22 @@ public class Camera
     {
         // Ensure the value stays within the boundaries [min, max]
         return Math.max(min, Math.min(value, max));
+    }
+
+    // Getter methods for camera position and zoom
+
+    public float getX()
+    {
+        return x;
+    }
+
+    public float getY()
+    {
+        return y;
+    }
+
+    public float getZoom()
+    {
+        return zoom;
     }
 }

@@ -48,16 +48,16 @@ public class CameraManager
                             boolean zoomIn, boolean zoomOut)
     {
         // Move the camera left or right by adjusting the target position
-        if (moveLeft) camera.setTargetPosition(camera.x - moveSpeed, camera.y);
-        if (moveRight) camera.setTargetPosition(camera.x + moveSpeed, camera.y);
+        if (moveLeft) camera.setTargetPosition(camera.getX() - moveSpeed, camera.getY());
+        if (moveRight) camera.setTargetPosition(camera.getX() + moveSpeed, camera.getY());
 
         // Move the camera up or down by adjusting the target position
-        if (moveUp) camera.setTargetPosition(camera.x, camera.y - moveSpeed);
-        if (moveDown) camera.setTargetPosition(camera.x, camera.y + moveSpeed);
+        if (moveUp) camera.setTargetPosition(camera.getX(), camera.getY() - moveSpeed);
+        if (moveDown) camera.setTargetPosition(camera.getX(), camera.getY() + moveSpeed);
 
         // Zoom in or out by adjusting the target zoom level
-        if (zoomIn) camera.setTargetZoom(camera.zoom + zoomSpeed);
-        if (zoomOut) camera.setTargetZoom(camera.zoom - zoomSpeed);
+        if (zoomIn) camera.setTargetZoom(camera.getZoom() + zoomSpeed);
+        if (zoomOut) camera.setTargetZoom(camera.getZoom() - zoomSpeed);
     }
 
     /**
@@ -86,5 +86,11 @@ public class CameraManager
     {
         // Apply the camera's transformations to the Graphics2D object (translation and zoom)
         camera.applyTransformations(g);
+    }
+
+    // Add this method to allow access to the camera object
+    public Camera getCamera()
+    {
+        return camera;
     }
 }

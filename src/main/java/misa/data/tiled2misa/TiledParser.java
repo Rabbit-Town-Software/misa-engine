@@ -22,6 +22,13 @@ public class TiledParser
 {
     private static final Logger LOGGER = Logger.getLogger(TiledParser.class.getName());
     private String resourceBasePath = ""; // Base directory for relative resources.
+    private final List<TiledTileset> tilesets;
+
+    // Constructor or method to load tilesets (you need to load these from the Tiled file)
+    public TiledParser(List<TiledTileset> tilesets)
+    {
+        this.tilesets = tilesets;
+    }
 
     /**
      * Sets the base path for resources such as tilesets and images.
@@ -376,5 +383,14 @@ public class TiledParser
         }
 
         return new TiledObject(id, name, type, x, y, width, height, properties);
+    }
+
+    public TiledTileset getTilesetForTile(int tileID)
+    {
+        for (TiledTileset tileset : tilesets)
+        {
+            if (tileset.containsTile(tileID)) return tileset;
+        }
+        return null;
     }
 }

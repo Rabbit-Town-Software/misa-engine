@@ -38,8 +38,8 @@ public class CameraBoundary
     {
         // Clamp the camera's x and y position to the defined boundaries (minX, minY, maxX, maxY)
         camera.setTargetPosition(
-                clamp(camera.x, minX, maxX),  // Ensure the camera's x position is within bounds
-                clamp(camera.y, minY, maxY)   // Ensure the camera's y position is within bounds
+                clamp(camera.getX(), minX, maxX),  // Ensure the camera's x position is within bounds
+                clamp(camera.getY(), minY, maxY)   // Ensure the camera's y position is within bounds
         );
     }
 

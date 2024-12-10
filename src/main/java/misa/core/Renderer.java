@@ -1,6 +1,9 @@
 package misa.core;
 
+import misa.data.tiled2misa.TiledLayer;
 import misa.data.tiled2misa.TiledMap;
+import misa.data.tiled2misa.TiledObject;
+import misa.data.tiled2misa.TiledTileset;
 import misa.systems.camera.Camera;
 import misa.systems.camera.CameraManager;
 import misa.systems.camera.CameraBoundary;
@@ -13,15 +16,15 @@ public class Renderer
 {
     private Graphics2D graphics;               // Graphics2D object for rendering
     private final CameraManager cameraManager; // CameraManager to handle camera logic
-    private final TiledMap tileMap;            // The map to be rendered (tilemap)
+    private final TiledMap tiledMap;            // The map to be rendered (tilemap)
     private ArrayList<Sprite> sprites;         // List of sprites to render
     private boolean debugMode;                 // Flag to toggle the debug overlay
 
     // Constructor to initialize Renderer with CameraManager and TileMap
-    public Renderer(Camera camera, CameraBoundary cameraBoundary, TiledMap tileMap)
+    public Renderer(Camera camera, CameraBoundary cameraBoundary, TiledMap tiledMap)
     {
         this.cameraManager = new CameraManager(camera, cameraBoundary); // Initialize CameraManager
-        this.tileMap = tileMap;
+        this.tiledMap = tiledMap;
         this.sprites = new ArrayList<>();
         this.debugMode = false;  // Default to false
     }
@@ -58,9 +61,9 @@ public class Renderer
     }
 
     // Main render function to handle the entire rendering process
-    public void render(Graphics g)
+    public void render(Graphics2D g)
     {
-        this.graphics = (Graphics2D) g;
+        this.graphics = g;
 
         // Update camera (movement, zoom, and boundary enforcement)
         cameraManager.update(1.0f); // Assuming deltaTime = 1.0f for simplicity
@@ -69,7 +72,12 @@ public class Renderer
         applyCameraTransformation();
 
         // Render the tilemap
-        renderTiles();
+        for (TiledLayer layer : tiledMap.getLayers())
+        {
+            renderLayer(g, layer);
+        }
+
+        renderObjects(g);
 
         // Render the sprites
         renderSprites();
@@ -78,6 +86,45 @@ public class Renderer
         if (debugMode)
         {
             renderDebugOverlay();
+        }
+    }
+
+    private void renderLayer(Graphics2D g, TiledLayer layer)
+    {
+        int tileWidth = tiledMap.getTileWidth();
+        int tileHeight = tiledMap.getTileHeight();
+        TiledTileset currentTileset = null;
+
+        for (int y = 0; y < layer.height(); y++)
+        {
+            for (int x = 0; x < layer.width(); x++)
+            {
+                long tileID = layer.tileData()[y][x];
+                TiledTileset tileset = getTilesetForTile(tileID);
+
+                if (tileset != currentTileset) currentTileset = tileset;
+
+                g.drawImage(currentTileset.getImage(), x * tileWidth, y * tileHeight,
+                        tileWidth, tileHeight, null);
+            }
+        }
+    }
+
+    private TiledTileset getTilesetForTile(long tileID)
+    {
+        for (TiledTileset tileset : tiledMap.getTilesets())
+        {
+            if (tileID >= tileset.firstGID()) return tileset;
+        }
+        return null;
+    }
+
+    private void renderObjects(Graphics2D g)
+    {
+        for (TiledObject object : tiledMap.getObjects())
+        {
+            g.fillRect((int) object.x(), (int) object.y(),
+                    (int) object.width(), (int) object.height());
         }
     }
 
@@ -91,13 +138,6 @@ public class Renderer
         // Apply camera zoom (scale the world based on the camera zoom level)
         this.graphics.scale(cameraManager.getCamera().getZoom(),
                 cameraManager.getCamera().getZoom());  // Zoom in/out the world
-    }
-
-    // Render the tiles (currently a placeholder)
-    private void renderTiles()
-    {
-        // Placeholder for tilemap rendering logic
-        tileMap.render(this.graphics);  // Assuming TiledMap has a render method that takes Graphics2D
     }
 
     // Render the sprites (currently a placeholder)
