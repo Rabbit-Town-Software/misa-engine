@@ -1,6 +1,9 @@
 package misa.core;
 
 import misa.data.tiled2misa.TiledMap;
+import misa.systems.camera.Camera;
+import misa.systems.camera.CameraManager;
+import misa.systems.camera.CameraBoundary;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -8,19 +11,19 @@ import java.util.ArrayList;
 @SuppressWarnings("unused")
 public class Renderer
 {
-    private Graphics2D graphics;       // Graphics2D object for rendering
-    private Camera camera;             // Camera to handle the view transformation
-    private TiledMap tileMap;          // The map to be rendered (tilemap)
-    private ArrayList<Sprite> sprites; // List of sprites to render
-    private boolean debugMode;         // Flag to toggle the debug overlay
+    private Graphics2D graphics;               // Graphics2D object for rendering
+    private final CameraManager cameraManager; // CameraManager to handle camera logic
+    private final TiledMap tileMap;            // The map to be rendered (tilemap)
+    private ArrayList<Sprite> sprites;         // List of sprites to render
+    private boolean debugMode;                 // Flag to toggle the debug overlay
 
-    // Constructor to initialize Renderer with Camera and TileMap
-    public Renderer(Camera camera, TiledMap tileMap)
+    // Constructor to initialize Renderer with CameraManager and TileMap
+    public Renderer(Camera camera, CameraBoundary cameraBoundary, TiledMap tileMap)
     {
-        this.camera = camera;
+        this.cameraManager = new CameraManager(camera, cameraBoundary); // Initialize CameraManager
         this.tileMap = tileMap;
         this.sprites = new ArrayList<>();
-        this.debugMode = false; // Default to false
+        this.debugMode = false;  // Default to false
     }
 
     // Add a sprite to the rendering list
@@ -32,7 +35,8 @@ public class Renderer
     // Remove a sprite by its index in the list
     public void removeSprite(int index)
     {
-        if (index >= 0 && index < sprites.size()) {
+        if (index >= 0 && index < sprites.size())
+        {
             this.sprites.remove(index);
         }
     }
@@ -43,12 +47,25 @@ public class Renderer
         this.debugMode = debugMode;
     }
 
+    // Handle camera input (e.g., for movement, zooming)
+    public void handleInput(float moveSpeed, float zoomSpeed, boolean moveLeft, boolean moveRight, boolean moveUp, boolean moveDown, boolean zoomIn, boolean zoomOut)
+    {
+        cameraManager.handleInput(
+                moveSpeed, zoomSpeed,
+                moveLeft, moveRight,
+                moveUp, moveDown,
+                zoomIn, zoomOut);
+    }
+
     // Main render function to handle the entire rendering process
     public void render(Graphics g)
     {
         this.graphics = (Graphics2D) g;
 
-        // Apply camera transformation (translate, scale, etc.)
+        // Update camera (movement, zoom, and boundary enforcement)
+        cameraManager.update(1.0f); // Assuming deltaTime = 1.0f for simplicity
+
+        // Apply camera transformations (translate, scale, etc.)
         applyCameraTransformation();
 
         // Render the tilemap
@@ -67,15 +84,20 @@ public class Renderer
     // Apply camera transformations (e.g., translating, zooming)
     private void applyCameraTransformation()
     {
-        // Placeholder for camera transformation logic
-        // For example: this.graphics.translate(camera.getX(), camera.getY());
+        // Apply camera translation (move the world based on camera position)
+        this.graphics.translate(-cameraManager.getCamera().getX(),
+                -cameraManager.getCamera().getY());  // Offset the drawing by the camera's position
+
+        // Apply camera zoom (scale the world based on the camera zoom level)
+        this.graphics.scale(cameraManager.getCamera().getZoom(),
+                cameraManager.getCamera().getZoom());  // Zoom in/out the world
     }
 
     // Render the tiles (currently a placeholder)
     private void renderTiles()
     {
         // Placeholder for tilemap rendering logic
-        // Example: tileMap.render(this.graphics);
+        tileMap.render(this.graphics);  // Assuming TiledMap has a render method that takes Graphics2D
     }
 
     // Render the sprites (currently a placeholder)
@@ -84,14 +106,15 @@ public class Renderer
         // Placeholder for sprite rendering logic
         for (Sprite sprite : sprites)
         {
-            // Example: sprite.render(this.graphics);
+            sprite.render(this.graphics);  // Assuming Sprite has a render method that takes Graphics2D
         }
     }
 
     // Render the debug overlay (e.g., FPS, hitboxes, etc.)
     private void renderDebugOverlay()
     {
-        // Placeholder for debug overlay rendering logic
-        // Example: this.graphics.drawString("FPS: " + fps, 10, 10);
+        // Example: Draw FPS or other debug info at a fixed position
+        this.graphics.setColor(Color.WHITE);
+        this.graphics.drawString("FPS: " + 60, 10, 10);  // Placeholder for FPS
     }
 }

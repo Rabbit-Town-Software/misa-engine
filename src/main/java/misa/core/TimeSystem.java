@@ -143,9 +143,6 @@ public class TimeSystem
      */
     public void onTimeChange(int targetHour, Runnable callback)
     {
-        if (hours == targetHour)
-        {
-            callback.run();
-        }
+        if (hours == targetHour) callback.run();
     }
 }
