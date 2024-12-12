@@ -3,27 +3,31 @@
 
 @import "{{ site.theme }}";
 
-$clr-primary-a0: #dfa118;
-$clr-primary-a10: #e5ab3b;
-$clr-primary-a20: #eab556;
-$clr-primary-a30: #efbf6f;
-$clr-primary-a40: #f3ca87;
-$clr-primary-a50: #f7d49f;
+/* Dark theme primary colors */
+$clr-primary-a0: #d89dd3;  /* Soft purple accent color */
+$clr-primary-a10: #e2a7db;
+$clr-primary-a20: #ecb2e2;
+$clr-primary-a30: #f5bbf2;
+$clr-primary-a40: #f7c7f7;
+$clr-primary-a50: #f9d3fc;
 
-$clr-surface-a0: #121212;
-$clr-surface-a10: #282828;
-$clr-surface-a20: #3f3f3f;
-$clr-surface-a30: #575757;
-$clr-surface-a40: #717171;
-$clr-surface-a50: #8b8b8b;
+/* Dark theme surface colors (gray-based, avoiding blacks) */
+$clr-surface-a0: #2e2e2e;  /* Soft dark gray background */
+$clr-surface-a10: #3f3f3f;
+$clr-surface-a20: #585858;
+$clr-surface-a30: #727272;
+$clr-surface-a40: #8b8b8b;
+$clr-surface-a50: #a4a4a4;
 
-$clr-surface-tonal-a0: #241f16;
-$clr-surface-tonal-a10: #39342b;
-$clr-surface-tonal-a20: #4f4a42;
-$clr-surface-tonal-a30: #65615a;
-$clr-surface-tonal-a40: #7d7973;
-$clr-surface-tonal-a50: #96938d;
+/* Dark theme tonal surface colors */
+$clr-surface-tonal-a0: #413f3d;
+$clr-surface-tonal-a10: #5c5855;
+$clr-surface-tonal-a20: #7d7570;
+$clr-surface-tonal-a30: #9e938f;
+$clr-surface-tonal-a40: #b9aea9;
+$clr-surface-tonal-a50: #d3cdc7;
 
+/* Body styling */
 body {
     background-color: $clr-surface-a0;
     color: $clr-surface-a50;
@@ -34,6 +38,7 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
+/* Link styling */
 a {
     color: $clr-primary-a20;
     text-decoration: none;
@@ -43,20 +48,24 @@ a:hover {
     text-decoration: underline;
 }
 
+/* Header, Footer */
 header, footer {
     background-color: $clr-surface-a10;
     padding: 1rem;
     text-align: center;
 }
 
+/* Main titles and sections */
 h1, h2, h3 {
     color: $clr-primary-a50;
 }
 
+/* Paragraph text */
 p {
     color: $clr-surface-a40;
 }
 
+/* Card sections */
 .card {
     background-color: $clr-surface-a20;
     border-radius: 8px;
@@ -65,11 +74,13 @@ p {
     margin: 1rem 0;
 }
 
+/* Background color with primary accent */
 .bg-primary {
     color: $clr-primary-a50;
     background-color: $clr-surface-a0;
 }
 
+/* Tonal Surface Styling */
 .card-tonal {
     background-color: $clr-surface-tonal-a20;
     border-radius: 8px;
