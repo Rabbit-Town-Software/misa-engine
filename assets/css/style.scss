@@ -5,26 +5,44 @@
 
 /* Dark theme styles */
 
-:root {
-    /* Greyscale spectrum */
-    --background-color: #1e1e2f;
-    --card-color: #2a2a3b;
-    --text-color: #e4e4eb;
-    --subtle-text-color: #a0a0b0;
-    --accent-color: #5757a5;
-}
+:/** Dark theme primary colors */
+$clr-primary-a0: #dfa118;
+$clr-primary-a10: #e5ab3b;
+$clr-primary-a20: #eab556;
+$clr-primary-a30: #efbf6f;
+$clr-primary-a40: #f3ca87;
+$clr-primary-a50: #f7d49f;
 
+/** Dark theme surface colors */
+$clr-surface-a0: #121212;
+$clr-surface-a10: #282828;
+$clr-surface-a20: #3f3f3f;
+$clr-surface-a30: #575757;
+$clr-surface-a40: #717171;
+$clr-surface-a50: #8b8b8b;
+
+/** Dark theme tonal surface colors */
+$clr-surface-tonal-a0: #241f16;
+$clr-surface-tonal-a10: #39342b;
+$clr-surface-tonal-a20: #4f4a42;
+$clr-surface-tonal-a30: #65615a;
+$clr-surface-tonal-a40: #7d7973;
+$clr-surface-tonal-a50: #96938d;
+
+/* Body styling */
 body {
-    background-color: var(--background-color);
-    color: var(--text-color);
-    font-family: 'Arial', sans-serif; /* Adjust the font if needed */
+    background-color: $clr-surface-a0;
+    color: $clr-surface-a50;
+    font-family: 'Arial', sans-serif;
     line-height: 1.6;
     margin: 0;
     padding: 0;
+    transition: background-color 0.3s, color 0.3s;
 }
 
+/* Link styling */
 a {
-    color: var(--accent-color);
+    color: $clr-primary-a20;
     text-decoration: none;
 }
 
@@ -32,24 +50,43 @@ a:hover {
     text-decoration: underline;
 }
 
+/* Header, Footer */
 header, footer {
-    background-color: var(--card-color);
+    background-color: $clr-surface-a10;
     padding: 1rem;
     text-align: center;
 }
 
+/* Main titles and sections */
 h1, h2, h3 {
-    color: var(--text-color);
+    color: $clr-primary-a50;
 }
 
+/* Paragraph text */
 p {
-    color: var(--subtle-text-color);
+    color: $clr-surface-a40;
 }
 
+/* Card sections */
 .card {
-    background-color: var(--card-color);
+    background-color: $clr-surface-a20;
     border-radius: 8px;
     padding: 1rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     margin: 1rem 0;
+}
+
+/* Background color with primary accent */
+.bg-primary {
+    color: $clr-primary-a50;
+    background-color: $clr-surface-a0;
+}
+
+/* Tonal Surface Styling */
+.card-tonal {
+    background-color: $clr-surface-tonal-a20;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
