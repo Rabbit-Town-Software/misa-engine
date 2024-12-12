@@ -1,8 +1,9 @@
 title: Misa Engine Page
 description: A blog and website for the Misa Engine.
-remote_theme: pages-themes/cayman@v0.2.0
+remote_theme: "mmistakes/minimal-mistakes@4.26.2"
 plugins:
 - jekyll-remote-theme
 - jekyll-sass-converter
+- jekyll-include-cache
 
 show_downloads: true
