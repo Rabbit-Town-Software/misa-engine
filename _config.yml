@@ -1,5 +1,9 @@
-title: Misa Engine Page
-description: A blog and website for the Misa Engine.
+title: Misa Engine
+description: An open-source 2D game engine created in Java.
+logo: 
+social_links:
+- github: "misa-engine"
+
 remote_theme: "mmistakes/minimal-mistakes@4.26.2"
 plugins:
 - jekyll-remote-theme
