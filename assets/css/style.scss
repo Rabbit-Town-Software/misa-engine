@@ -1,0 +1,35 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+/* Dark theme styles */
+
+body {
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0;           /* Light text color */
+}
+
+a {
+    color: #bb86fc;           /* Purple links */
+}
+
+a:hover {
+    color: #3700b3;           /* Darker purple on hover */
+}
+
+header {
+    background-color: #1f1f1f; /* Dark header background */
+    color: #ffffff;            /* White header text */
+}
+
+footer {
+    background-color: #1f1f1f; /* Match header */
+    color: #a0a0a0;            /* Light gray footer text */
+}
+
+.post-title {
+    color: #bb86fc;            /* Highlight post titles */
+}
+
+/* Adjust additional theme components as needed */
