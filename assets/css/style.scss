@@ -1,9 +1,6 @@
----
----
-
 @import "{{ site.theme }}";
 
-/* Dark theme primary colors */
+/* Custom colors */
 $clr-primary-a0: #d89dd3;  /* Soft purple accent color */
 $clr-primary-a10: #e2a7db;
 $clr-primary-a20: #ecb2e2;
@@ -11,7 +8,6 @@ $clr-primary-a30: #f5bbf2;
 $clr-primary-a40: #f7c7f7;
 $clr-primary-a50: #f9d3fc;
 
-/* Dark theme surface colors (gray-based, avoiding blacks) */
 $clr-surface-a0: #2e2e2e;  /* Soft dark gray background */
 $clr-surface-a10: #3f3f3f;
 $clr-surface-a20: #585858;
@@ -19,13 +15,16 @@ $clr-surface-a30: #727272;
 $clr-surface-a40: #8b8b8b;
 $clr-surface-a50: #a4a4a4;
 
-/* Dark theme tonal surface colors */
 $clr-surface-tonal-a0: #413f3d;
 $clr-surface-tonal-a10: #5c5855;
 $clr-surface-tonal-a20: #7d7570;
 $clr-surface-tonal-a30: #9e938f;
 $clr-surface-tonal-a40: #b9aea9;
 $clr-surface-tonal-a50: #d3cdc7;
+
+$clr-heading: #d89dd3; /* Cool purple for headings */
+$clr-link-hover: #f5bbf2; /* Light purple for links on hover */
+$clr-code-bg: #1a1a1a; /* Black background for code blocks */
 
 /* Body styling */
 body {
@@ -45,19 +44,19 @@ a {
 }
 
 a:hover {
-    text-decoration: underline;
+    color: $clr-link-hover;  /* Change color on hover instead of underlining */
 }
 
 /* Header, Footer */
 header, footer {
-    background-color: $clr-surface-a10;
+    background: linear-gradient(to right, #3f3f3f, #2e2e2e); /* Adjusted gradient */
     padding: 1rem;
     text-align: center;
 }
 
 /* Main titles and sections */
 h1, h2, h3 {
-    color: $clr-primary-a50;
+    color: $clr-heading;  /* Use the cool purple color */
 }
 
 /* Paragraph text */
@@ -87,4 +86,12 @@ p {
     padding: 1rem;
     margin: 1rem 0;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Code block styling */
+pre, code {
+    background-color: $clr-code-bg; /* Dark background for code blocks */
+    color: $clr-surface-a50; /* Light text color for code */
+    padding: 0.5rem;
+    border-radius: 4px;
 }
