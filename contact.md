@@ -1,11 +1,15 @@
 ---
-layout: default
+layout: page
 title: Contact
 ---
 
-# Contact Me
+# Contact
 
-You can reach me at:
+If you have any questions or feedback about Misa Engine, feel free to reach out.
 
-- Email: [your-email@example.com](mailto:your-email@example.com)
-- GitHub: [Your GitHub Profile](https://github.com/your-username)
+## Contact Information
+
+- **Email**: casepresley.dev@tuta.com
+- **GitHub**: [Misa Engine GitHub](https://github.com/case-presley/Misa-Engine)
+
+We'd love to hear from you!
