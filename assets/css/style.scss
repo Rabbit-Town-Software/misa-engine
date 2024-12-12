@@ -5,31 +5,51 @@
 
 /* Dark theme styles */
 
+:root {
+    /* Greyscale spectrum */
+    --background-color: #1e1e2f;
+    --card-color: #2a2a3b;
+    --text-color: #e4e4eb;
+    --subtle-text-color: #a0a0b0;
+    --accent-color: #5757a5;
+}
+
 body {
-    background-color: #121212; /* Dark background */
-    color: #e0e0e0;           /* Light text color */
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Arial', sans-serif; /* Adjust the font if needed */
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
 }
 
 a {
-    color: #bb86fc;           /* Purple links */
+    color: var(--accent-color);
+    text-decoration: none;
 }
 
 a:hover {
-    color: #3700b3;           /* Darker purple on hover */
+    text-decoration: underline;
 }
 
-header {
-    background-color: #1f1f1f; /* Dark header background */
-    color: #ffffff;            /* White header text */
+header, footer {
+    background-color: var(--card-color);
+    padding: 1rem;
+    text-align: center;
 }
 
-footer {
-    background-color: #1f1f1f; /* Match header */
-    color: #a0a0a0;            /* Light gray footer text */
+h1, h2, h3 {
+    color: var(--text-color);
 }
 
-.post-title {
-    color: #bb86fc;            /* Highlight post titles */
+p {
+    color: var(--subtle-text-color);
 }
 
-/* Adjust additional theme components as needed */
+.card {
+    background-color: var(--card-color);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    margin: 1rem 0;
+}
