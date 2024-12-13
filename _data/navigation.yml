@@ -1,0 +1,11 @@
+- title: "Home"
+  url: /
+
+- title: "Documentation"
+  url: /docs/
+
+- title: "Blog"
+  url: /blog/
+
+- title: "GitHub"
+  url: https://github.com/<your-username>/<project-name>
