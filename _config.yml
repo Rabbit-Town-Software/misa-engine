@@ -1,10 +1,9 @@
 # Basic site settings
 title: "Misa Engine"
 description: "A brief description of your project."
-baseurl: ""
+baseurl: "/Misa-Engine"
 url: "https://case-presley.github.io" # Replace with your actual GitHub Pages URL
 minimal_mistakes_skin: "dark"
-logo: /assets/images/not88x88.jpg
 
 # Theme
 remote_theme: "mmistakes/minimal-mistakes"
@@ -26,7 +25,7 @@ defaults:
 # Author Information
 author:
   name: "Your Name"
-  avatar: "/assets/images/avatar.png"
+  avatar: "/assets/images/not88x88.jpg"
   bio: "A short bio about you."
   location: "Your Location"
   email: "your-email@example.com"
