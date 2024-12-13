@@ -1,21 +1,13 @@
 ---
-layout: single
-title: "Welcome to Project Name"
+layout: splash
+title: "Misa Engine"
 permalink: /
+header:
+  overlay_color: "#000"
+  overlay_image: "/assets/images/not88x88.jpg" # Replace with your image
+  actions:
+    - label: "Learn More"
+      url: "/docs/"
 ---
 
-# Welcome to Project Name
-
-This is the official documentation for **Project Name**.
-
-## Features
-- Feature 1
-- Feature 2
-- Feature 3
-
-## Getting Started
-Follow these steps to get started with the project:
-
-```bash
-git clone https://github.com/<your-username>/<project-name>.git
-cd <project-name>
+Welcome to the **Misa Engine** project!
