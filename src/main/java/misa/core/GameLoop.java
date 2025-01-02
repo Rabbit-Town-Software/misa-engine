@@ -1,18 +1,55 @@
 package misa.core;
 
+import misa.scripting.LuaManager;
+import misa.scripting.LuaEventHandler;
+
+import misa.core.events.EventManager;
+
+import misa.core.events.gameplay.entity.EntityDestroyEvent;
+import misa.core.events.gameplay.entity.EntityDestroyListener;
+import misa.core.events.gameplay.entity.EntitySpawnEvent;
+import misa.core.events.gameplay.entity.EntitySpawnListener;
+
+import misa.core.events.gameplay.tiled.TileEnterEvent;
+import misa.core.events.gameplay.tiled.TileEnterListener;
+import misa.core.events.gameplay.tiled.TileExitEvent;
+import misa.core.events.gameplay.tiled.TileExitListener;
+
+import misa.core.events.gameplay.time.TimeChangeEvent;
+import misa.core.events.gameplay.time.TimeChangeListener;
+
+import misa.core.events.input.KeyPressEvent;
+import misa.core.events.input.KeyPressListener;
+import misa.core.events.input.KeyReleaseEvent;
+import misa.core.events.input.KeyReleaseListener;
+import misa.core.events.input.MouseClickEvent;
+import misa.core.events.input.MouseClickListener;
+import misa.core.events.input.MouseMoveEvent;
+import misa.core.events.input.MouseMoveListener;
+
+import misa.core.events.lifecycle.GameOverEvent;
+import misa.core.events.lifecycle.GameOverListener;
+import misa.core.events.lifecycle.GamePauseEvent;
+import misa.core.events.lifecycle.GamePauseListener;
+import misa.core.events.lifecycle.GameResumeEvent;
+import misa.core.events.lifecycle.GameResumeListener;
+import misa.core.events.lifecycle.GameStartEvent;
+import misa.core.events.lifecycle.GameStartListener;
+
+import misa.core.events.rendering.RenderEndEvent;
+import misa.core.events.rendering.RenderEndListener;
+import misa.core.events.rendering.RenderStartEvent;
+import misa.core.events.rendering.RenderStartListener;
+
 import misa.data.config.ConfigManager;
 
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
 import java.util.Properties;
 
 /**
  * The main game loop class, responsible for updating the game state and rendering.
  */
 @SuppressWarnings("unused")
-public class GameLoop implements Runnable, KeyListener, MouseListener
+public class GameLoop implements Runnable
 {
     private int targetFPS;        // Target frame rate (frames per second)
     private int targetUPS;        // Target updates per second (for physics, game logic)
@@ -25,16 +62,20 @@ public class GameLoop implements Runnable, KeyListener, MouseListener
     private int frames = 0, ticks = 0;
 
     private final ConfigManager configManager;
+    private final EventManager eventManager;
 
     // Constructor for GameLoop
     public GameLoop(TimeSystem timeSystem)
     {
+        this.eventManager = new EventManager();
         this.timeSystem = timeSystem;
         this.running = false;
 
         // Initialize and load configuration
         configManager = new ConfigManager("config/config.properties");
         loadConfiguration();
+
+        registerEventListeners();
     }
 
     /**
@@ -51,6 +92,27 @@ public class GameLoop implements Runnable, KeyListener, MouseListener
         System.out.println("Loaded Configuration: ");
         System.out.println("Target FPS: " + targetFPS);
         System.out.println("Target UPS: " + targetUPS);
+    }
+
+    private void registerEventListeners()
+    {
+        System.out.println("Registering event listeners... ");
+
+        eventManager.addListener(EntitySpawnEvent.class, new EntitySpawnListener());
+        eventManager.addListener(EntityDestroyEvent.class, new EntityDestroyListener());
+        eventManager.addListener(TileEnterEvent.class, new TileEnterListener());
+        eventManager.addListener(TileExitEvent.class, new TileExitListener());
+        eventManager.addListener(TimeChangeEvent.class, new TimeChangeListener());
+        eventManager.addListener(KeyPressEvent.class, new KeyPressListener());
+        eventManager.addListener(KeyReleaseEvent.class, new KeyReleaseListener());
+        eventManager.addListener(MouseClickEvent.class, new MouseClickListener());
+        eventManager.addListener(MouseMoveEvent.class, new MouseMoveListener());
+        eventManager.addListener(GameOverEvent.class, new GameOverListener());
+        eventManager.addListener(GamePauseEvent.class, new GamePauseListener());
+        eventManager.addListener(GameResumeEvent.class, new GameResumeListener());
+        eventManager.addListener(GameStartEvent.class, new GameStartListener());
+        eventManager.addListener(RenderEndEvent.class, new RenderEndListener());
+        eventManager.addListener(RenderStartEvent.class, new RenderStartListener());
     }
 
     // Method to start the game loop in a separate thread
@@ -161,35 +223,4 @@ public class GameLoop implements Runnable, KeyListener, MouseListener
     {
         // Here you'd check for specific input actions like key presses, mouse clicks, etc.
     }
-
-    // KeyListener and MouseListener for capturing input
-    @Override
-    public void keyPressed(KeyEvent e) {
-        System.out.println("Key pressed: " + e.getKeyChar());
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        System.out.println("Key released: " + e.getKeyChar());
-    }
-
-    @Override
-    public void keyTyped(KeyEvent e) {}
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        System.out.println("Mouse clicked at: (" + e.getX() + ", " + e.getY() + ")");
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {}
-
-    @Override
-    public void mouseReleased(MouseEvent e) {}
-
-    @Override
-    public void mouseEntered(MouseEvent e) {}
-
-    @Override
-    public void mouseExited(MouseEvent e) {}
 }

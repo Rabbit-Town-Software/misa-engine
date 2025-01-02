@@ -9,16 +9,19 @@ import misa.core.events.EventListener;
 @SuppressWarnings("unused")
 public class EntityDestroyListener implements EventListener<EntityDestroyEvent>
 {
+    public EntityDestroyListener()
+    {
+        // Constructor - no need for LuaEventHandler or Lua script path.
+    }
+
     @Override
     public void handleEvent(EntityDestroyEvent event)
     {
-        // Get the entity from the event
+        // Handle the event in Java (no Lua logic needed)
         GameObject entity = event.getEntity();
-
-        // Print information about the entity being destroyed
         System.out.println("Entity destroyed at position: (" + entity.getX() + ", " + entity.getY() + ")");
 
-        // You could add more logic here for cleaning up the entity
+        // You can add more logic here for cleaning up or removing the entity from game state.
         // Example: GameState.removeEntity(entity);
     }
 }

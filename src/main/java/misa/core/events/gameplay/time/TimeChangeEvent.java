@@ -1,4 +1,4 @@
-package misa.core.events.gameplay;
+package misa.core.events.gameplay.time;
 
 import misa.core.events.Event;
 
