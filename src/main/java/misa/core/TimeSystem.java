@@ -1,7 +1,7 @@
 package misa.core;
 
+import misa.core.events.EventManager;
 import misa.scripting.LuaEventHandler;
-import org.luaj.vm2.LuaValue;
 
 /**
  * Represents a time system for a game, allowing the simulation of in-game time progression,
@@ -24,7 +24,7 @@ public class TimeSystem
      * @param rate           The progression rate: real-time seconds per in-game second.
      * @param luaEventHandler A LuaEventHandler instance for triggering Lua scripts on events.
      */
-    public TimeSystem(float rate, LuaEventHandler luaEventHandler)
+    public TimeSystem(float rate, LuaEventHandler luaEventHandler, EventManager eventManager)
     {
         this.hours = 0;
         this.minutes = 0;
@@ -33,6 +33,7 @@ public class TimeSystem
         this.progressionRate = rate;
         this.isPaused = false;
         this.luaEventHandler = luaEventHandler;
+        // Reference to the EventManager
     }
 
     /**
@@ -58,9 +59,6 @@ public class TimeSystem
 
         days += hours / 24;
         hours %= 24;
-
-        // Trigger Lua event for hour change
-        luaEventHandler.triggerEvent("onHourChange", LuaValue.valueOf(hours));
     }
 
     /**
@@ -84,8 +82,7 @@ public class TimeSystem
         this.seconds = s;
 
         // Trigger Lua event for time setting
-        luaEventHandler.triggerEvent("onTimeSet",
-                LuaValue.valueOf(h), LuaValue.valueOf(m), LuaValue.valueOf(s));
+        luaEventHandler.triggerEvent("onTimeSet");
     }
 
     /**

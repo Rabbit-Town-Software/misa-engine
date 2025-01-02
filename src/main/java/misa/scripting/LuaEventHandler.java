@@ -1,7 +1,5 @@
 package misa.scripting;
 
-import org.luaj.vm2.LuaValue;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -15,7 +13,7 @@ public class LuaEventHandler
 {
     private static final Logger LOGGER = Logger.getLogger(LuaEventHandler.class.getName());
     private final LuaManager luaManager; // Reference to the LuaManager for script execution
-    private final Map<String, LuaValue> eventHandlers = new HashMap<>(); // Registered event handlers
+    private final Map<String, String> eventScripts = new HashMap<>(); // Maps event names to script filenames
 
     /**
      * Constructs a LuaEventHandler.
@@ -33,37 +31,43 @@ public class LuaEventHandler
      * @param eventName The name of the event.
      * @param script    The Lua script defining the event handler.
      */
-    public void registerEventHandler(String eventName, String script)
+    public void registerEventScript(String eventName, String script)
     {
-        LuaValue handler = luaManager.loadScript(script);
-        if (!handler.isnil())
+        eventScripts.put(eventName, script);
+        LOGGER.info("Registered Lua script for event: " + eventName);
+    }
+
+    public void registerEventScriptFromFile(String eventName, String filePath)
+    {
+        String scriptContent = luaManager.loadScriptFromFile(filePath);
+        if (scriptContent != null && !scriptContent.isEmpty())
         {
-            eventHandlers.put(eventName, handler);
-            LOGGER.info("Registered Lua event handler for event: " + eventName);
+            registerEventScript(eventName, scriptContent);
         }
         else
         {
-            LOGGER.warning("Failed to register event handler for event: " + eventName);
+            LOGGER.warning("Failed to load Lua script from file: " + filePath);
         }
     }
 
     /**
-     * Triggers an event, executing the associated Lua script.
+     * Triggers a registered Lua script by event name.
      *
      * @param eventName The name of the event.
-     * @param args      The arguments to pass to the Lua script.
      */
-    public void triggerEvent(String eventName, LuaValue... args)
+    public void triggerEvent(String eventName)
     {
-        LuaValue handler = eventHandlers.get(eventName);
-        if (handler == null)
+        String script = eventScripts.get(eventName);
+        if (script == null)
         {
-            LOGGER.warning("No handler registered for event: " + eventName);
+            LOGGER.warning("No Lua script registered for event: " + eventName);
             return;
         }
+
         try
         {
-            handler.invoke(args);
+            luaManager.executeScript(script);
+            LOGGER.info("Executed Lua script for event: " + eventName);
         }
         catch (Exception e)
         {

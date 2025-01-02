@@ -1,6 +1,12 @@
 package misa.entities;
 
+import misa.core.events.gameplay.tiled.TileEnterEvent;
+import misa.core.events.gameplay.tiled.TileExitEvent;
 import misa.scripting.LuaManager;
+import misa.core.events.gameplay.entity.EntitySpawnEvent;
+import misa.core.events.gameplay.entity.EntityDestroyEvent;
+import misa.core.events.EventManager;
+
 import org.luaj.vm2.LuaValue;
 
 import java.awt.Graphics;
@@ -15,11 +21,11 @@ import java.util.logging.Logger;
 public abstract class GameObject
 {
     private static final Logger LOGGER = Logger.getLogger(GameObject.class.getName());
-
     protected double x, y; // coordinates
     protected BufferedImage currentImage;
     protected LuaManager luaManager; // LuaManager for handling scripting
     protected LuaValue luaScript;   // Lua script defining behavior
+    protected static EventManager eventManager = new EventManager();
 
     /**
      * Constructor for GameObject
@@ -31,6 +37,29 @@ public abstract class GameObject
     {
         this.x = x;
         this.y = y;
+        eventManager.triggerEvent(new EntitySpawnEvent(this));
+    }
+
+    /**
+     * Destroys the GameObject and triggers an event.
+     */
+    public void destroy()
+    {
+        // Trigger destroy event when GameObject is removed
+        eventManager.triggerEvent(new EntityDestroyEvent(this));
+        // Additional cleanup (like removing from the world, freeing resources, etc.)
+    }
+
+    public void enterTile(int tileX, int tileY)
+    {
+        // Trigger the TileEnterEvent when the entity enters a tile
+        eventManager.triggerEvent(new TileEnterEvent(tileX, tileY));
+    }
+
+    public void exitTile(int tileX, int tileY)
+    {
+        // Trigger the TileExitEvent when the entity exits a tile
+        eventManager.triggerEvent(new TileExitEvent(tileX, tileY));
     }
 
     /**

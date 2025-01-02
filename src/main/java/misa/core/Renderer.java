@@ -16,7 +16,7 @@ public class Renderer
 {
     private Graphics2D graphics;               // Graphics2D object for rendering
     private final CameraManager cameraManager; // CameraManager to handle camera logic
-    private final TiledMap tiledMap;            // The map to be rendered (tilemap)
+    private final TiledMap tiledMap;           // The map to be rendered (tilemap)
     private ArrayList<Sprite> sprites;         // List of sprites to render
     private boolean debugMode;                 // Flag to toggle the debug overlay
 

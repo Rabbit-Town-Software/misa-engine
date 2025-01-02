@@ -5,6 +5,9 @@ import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 /**
@@ -37,7 +40,7 @@ public class LuaManager
     }
 
     /**
-     * Loads and executes a Lua script.
+     * Loads a Lua script from a string.
      *
      * @param script The Lua script as a string.
      * @return The compiled script as a LuaValue, or NIL if an error occurs.
@@ -56,22 +59,39 @@ public class LuaManager
     }
 
     /**
+     * Loads a Lua script from a file and returns its content as a string.
+     *
+     * @param filePath The path to the Lua script file.
+     * @return The content of the Lua script, or null if an error occurs.
+     */
+    public String loadScriptFromFile(String filePath)
+    {
+        try
+        {
+            return Files.readString(Paths.get(filePath));
+        }
+        catch (IOException e)
+        {
+            LOGGER.severe("Failed to load Lua script from file: " + filePath + ". Error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Executes a Lua script and returns its result.
      *
      * @param script The Lua script as a string.
-     * @return The result of the script execution, or NIL if an error occurs.
      */
-    public LuaValue executeScript(String script)
+    public void executeScript(String script)
     {
         try
         {
             LuaValue chunk = loadScript(script);
-            return chunk.call();
+            chunk.call();
         }
         catch (Exception e)
         {
             LOGGER.severe("Failed to execute Lua script: " + e.getMessage());
-            return LuaValue.NIL;
         }
     }
 
@@ -122,6 +142,7 @@ public class LuaManager
             LOGGER.warning("Lua function not found: " + functionName);
             return LuaValue.NIL;
         }
+
         try
         {
             return function.invoke(args).arg1();
