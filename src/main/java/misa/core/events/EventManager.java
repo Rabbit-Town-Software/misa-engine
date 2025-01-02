@@ -26,7 +26,7 @@ public class EventManager
 
     public void addLuaListener(String eventName, String luaScript)
     {
-        luaEventHandler.registerEventHandler(eventName, luaScript);
+        luaEventHandler.registerEventScript(eventName, luaScript);
     }
 
     public <T extends Event> void removeListener(Class<T> eventType, EventListener<T> listener)

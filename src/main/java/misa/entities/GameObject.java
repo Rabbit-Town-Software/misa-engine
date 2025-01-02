@@ -3,13 +3,16 @@ package misa.entities;
 import misa.core.events.gameplay.tiled.TileEnterEvent;
 import misa.core.events.gameplay.tiled.TileExitEvent;
 import misa.scripting.LuaManager;
+import misa.scripting.LuaEventHandler;
 import misa.core.events.gameplay.entity.EntitySpawnEvent;
 import misa.core.events.gameplay.entity.EntityDestroyEvent;
 import misa.core.events.EventManager;
 
+import misa.systems.animation.Animator;
+import misa.systems.animation.AnimationLoader;
 import org.luaj.vm2.LuaValue;
 
-import java.awt.Graphics;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
 
@@ -21,98 +24,94 @@ import java.util.logging.Logger;
 public abstract class GameObject
 {
     private static final Logger LOGGER = Logger.getLogger(GameObject.class.getName());
+
     protected double x, y; // coordinates
-    protected BufferedImage currentImage;
+
+    protected BufferedImage[] animationFrames; // Array of animation frames
+    protected Animator animator; // Current frame index
+
     protected LuaManager luaManager; // LuaManager for handling scripting
-    protected LuaValue luaScript;   // Lua script defining behavior
-    protected static EventManager eventManager = new EventManager();
+    protected LuaEventHandler luaEventHandler;
+    protected LuaValue luaScript; // Lua script defining behavior
+    protected static EventManager eventManager;
 
     /**
      * Constructor for GameObject
      *
-     * @param x x coordinate
-     * @param y y coordinate
+     * @param x             x coordinate
+     * @param y             y coordinate
+     * @param luaManager    LuaManager for scripting
+     * @param luaEventHandler LuaEventHandler for handling Lua-based events
      */
-    public GameObject(double x, double y)
+    public GameObject(double x, double y, LuaManager luaManager, LuaEventHandler luaEventHandler)
     {
         this.x = x;
         this.y = y;
+        this.luaManager = luaManager;
+        this.luaEventHandler = luaEventHandler;
+        this.animator = new Animator(luaManager);
         eventManager.triggerEvent(new EntitySpawnEvent(this));
     }
 
     /**
-     * Destroys the GameObject and triggers an event.
+     * Loads animation frames from file paths.
+     *
+     * @param paths Array of file paths for animation frames.
      */
-    public void destroy()
+    public void loadAnimationFromPaths(String[] paths)
     {
-        // Trigger destroy event when GameObject is removed
-        eventManager.triggerEvent(new EntityDestroyEvent(this));
-        // Additional cleanup (like removing from the world, freeing resources, etc.)
-    }
-
-    public void enterTile(int tileX, int tileY)
-    {
-        // Trigger the TileEnterEvent when the entity enters a tile
-        eventManager.triggerEvent(new TileEnterEvent(tileX, tileY));
-    }
-
-    public void exitTile(int tileX, int tileY)
-    {
-        // Trigger the TileExitEvent when the entity exits a tile
-        eventManager.triggerEvent(new TileExitEvent(tileX, tileY));
+        this.animationFrames = AnimationLoader.loadAnimations(paths);
     }
 
     /**
-     * Constructor for GameObject with Lua script
+     * Loads animation frames from a Lua script.
      *
-     * @param x          x coordinate
-     * @param y          y coordinate
-     * @param luaManager LuaManager to handle scripting
-     * @param luaScript  Lua script defining behavior
+     * @param luaScript Lua script defining file paths.
      */
-    public GameObject(double x, double y, LuaManager luaManager, String luaScript)
+    public void loadAnimationFromLua(String luaScript)
     {
-        this(x, y);
-        this.luaManager = luaManager;
-        this.luaScript = luaManager.loadScript(luaScript);
+        this.animationFrames = new AnimationLoader(luaManager).loadAnimationsFromLua(luaScript);
     }
 
     /**
-     * Draws the GameObject on the screen
+     * Animates the GameObject using the loaded frames.
      *
-     * @param graphics the graphics used for drawing
+     * @param graphics Graphics2D context for rendering.
+     * @param shouldLoop Whether the animation should loop.
      */
-    public void draw(Graphics graphics)
+    public void animate(Graphics2D graphics, boolean shouldLoop)
     {
-        if (currentImage != null)
+        if (animationFrames != null)
         {
-            graphics.drawImage(currentImage, (int) x, (int) y, null);
+            animator.animate(animationFrames, shouldLoop, this, graphics);
         }
         else
         {
-            LOGGER.warning("There is no image to draw for GameObject.");
+            LOGGER.warning("No animation frames loaded for GameObject");
         }
     }
 
     /**
-     * Sets the current image to be displayed
+     * Load a Lua script for this GameObject.
      *
-     * @param image image to be shown
+     * @param luaScriptPath Path to the Lua script
      */
-    public void setCurrentImage(BufferedImage image)
+    public void loadLuaScript(String luaScriptPath)
     {
-        if (image == null)
+        if (luaManager != null)
         {
-            LOGGER.warning("currentImage is null, GameObject might not render correctly.");
+            this.luaScript = luaManager.loadScript(luaScriptPath);
         }
-        this.currentImage = image;
+        else
+        {
+            LOGGER.warning("LuaManager is not initialized. Cannot load script.");
+        }
     }
 
     /**
-     * Updates the GameObject's state using either Java-defined or Lua-defined behavior.
-     * Specific behaviors like movement and interactions should be defined here.
+     * Executes the Lua script, if available.
      */
-    public void update()
+    public void executeLuaScript()
     {
         if (luaScript != null && luaScript.isfunction())
         {
@@ -127,19 +126,57 @@ public abstract class GameObject
         }
         else
         {
-            // Default behavior for Java-based subclasses
-            LOGGER.info("No Lua script defined for update. Extend this class for custom behavior.");
+            LOGGER.fine("No Lua script or callable function available for execution.");
         }
     }
 
-    // Getters and setters below
+    /**
+     * Updates the GameObject's state. Can be overridden by subclasses for Java-defined behavior.
+     */
+    public void update()
+    {
+        executeLuaScript(); // Optional Lua-based behavior
+    }
 
     /**
-     * Sets the new position of the GameObject
+     * Draws the GameObject on the screen
      *
-     * @param x the new x coordinate
-     * @param y the new y coordinate
+     * @param graphics the graphics used for drawing
      */
+    public void draw(Graphics graphics)
+    {
+        if (graphics instanceof Graphics2D)
+        {
+            animate((Graphics2D) graphics, true);
+        }
+        else
+        {
+            LOGGER.warning("Graphics instance is not Graphics2D.");
+        }
+    }
+
+    /**
+     * Destroys the GameObject and triggers an event.
+     */
+    public void destroy()
+    {
+        eventManager.triggerEvent(new EntityDestroyEvent(this));
+    }
+
+    public void enterTile(int tileX, int tileY)
+    {
+        eventManager.triggerEvent(new TileEnterEvent(tileX, tileY));
+    }
+
+    public void exitTile(int tileX, int tileY)
+    {
+        eventManager.triggerEvent(new TileExitEvent(tileX, tileY));
+    }
+
+    // Getters and setters for position
+    public double getX() { return x; }
+    public double getY() { return y; }
+
     public void setPosition(double x, double y)
     {
         this.x = x;
@@ -147,18 +184,12 @@ public abstract class GameObject
     }
 
     /**
-     * @return returns the x coordinate
+     * Static method to set the EventManager.
+     *
+     * @param manager the EventManager to set
      */
-    public double getX()
+    public static void setEventManager(EventManager manager)
     {
-        return x;
-    }
-
-    /**
-     * @return returns the y coordinate
-     */
-    public double getY()
-    {
-        return y;
+        eventManager = manager;
     }
 }
