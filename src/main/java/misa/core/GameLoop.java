@@ -1,6 +1,5 @@
 package misa.core;
 
-import misa.scripting.LuaManager;
 import misa.scripting.LuaEventHandler;
 
 import misa.core.events.EventManager;
@@ -57,6 +56,7 @@ public class GameLoop implements Runnable
     private boolean running;
     private Thread gameThread;
     private final TimeSystem timeSystem;
+    private final GameCanvas gameCanvas;
 
     private double delta;
     private int frames = 0, ticks = 0;
@@ -65,10 +65,11 @@ public class GameLoop implements Runnable
     private final EventManager eventManager;
 
     // Constructor for GameLoop
-    public GameLoop(TimeSystem timeSystem)
+    public GameLoop(TimeSystem timeSystem, LuaEventHandler luaEventHandler, Renderer renderer)
     {
-        this.eventManager = new EventManager();
+        this.eventManager = new EventManager(luaEventHandler);
         this.timeSystem = timeSystem;
+        this.gameCanvas = new GameCanvas(renderer);
         this.running = false;
 
         // Initialize and load configuration
@@ -213,14 +214,17 @@ public class GameLoop implements Runnable
     // Method to render the game world
     public void render()
     {
-        // Render the game world (this would be specific to your rendering system)
-        // Example: graphics.drawImage(...) or something similar
-        System.out.println("Rendering the game world...");
+        gameCanvas.repaint();
     }
 
     // Handle input (keyboard, mouse, etc.)
     private void handleInput()
     {
         // Here you'd check for specific input actions like key presses, mouse clicks, etc.
+    }
+
+    public GameCanvas getGameCanvas()
+    {
+        return gameCanvas;
     }
 }

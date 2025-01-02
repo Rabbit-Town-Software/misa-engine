@@ -2,8 +2,8 @@ package misa.core;
 
 import misa.data.tiled2misa.TiledLayer;
 import misa.data.tiled2misa.TiledMap;
-import misa.data.tiled2misa.TiledObject;
 import misa.data.tiled2misa.TiledTileset;
+import misa.entities.GameObject;
 import misa.systems.camera.Camera;
 import misa.systems.camera.CameraManager;
 import misa.systems.camera.CameraBoundary;
@@ -14,34 +14,31 @@ import java.util.ArrayList;
 @SuppressWarnings("unused")
 public class Renderer
 {
-    private Graphics2D graphics;               // Graphics2D object for rendering
-    private final CameraManager cameraManager; // CameraManager to handle camera logic
-    private final TiledMap tiledMap;           // The map to be rendered (tilemap)
-    private ArrayList<Sprite> sprites;         // List of sprites to render
-    private boolean debugMode;                 // Flag to toggle the debug overlay
+    private Graphics2D graphics;                     // Graphics2D object for rendering
+    private final CameraManager cameraManager;       // CameraManager to handle camera logic
+    private final TiledMap tiledMap;                 // The map to be rendered (tilemap)
+    private final ArrayList<GameObject> gameObjects; // List of GameObjects to render
+    private boolean debugMode;                       // Flag to toggle the debug overlay
 
     // Constructor to initialize Renderer with CameraManager and TileMap
     public Renderer(Camera camera, CameraBoundary cameraBoundary, TiledMap tiledMap)
     {
         this.cameraManager = new CameraManager(camera, cameraBoundary); // Initialize CameraManager
         this.tiledMap = tiledMap;
-        this.sprites = new ArrayList<>();
+        this.gameObjects = new ArrayList<>();
         this.debugMode = false;  // Default to false
     }
 
     // Add a sprite to the rendering list
-    public void addSprite(Sprite sprite)
+    public void addGameObject(GameObject gameObject)
     {
-        this.sprites.add(sprite);
+        this.gameObjects.add(gameObject);
     }
 
     // Remove a sprite by its index in the list
-    public void removeSprite(int index)
+    public void removeGameObject(GameObject gameObject)
     {
-        if (index >= 0 && index < sprites.size())
-        {
-            this.sprites.remove(index);
-        }
+        this.gameObjects.remove(gameObject);
     }
 
     // Toggle the debug mode (to show debug overlays like FPS, hitboxes, etc.)
@@ -61,9 +58,9 @@ public class Renderer
     }
 
     // Main render function to handle the entire rendering process
-    public void render(Graphics2D g)
+    public void render(Graphics2D graphics)
     {
-        this.graphics = g;
+        this.graphics = graphics;
 
         // Update camera (movement, zoom, and boundary enforcement)
         cameraManager.update(1.0f); // Assuming deltaTime = 1.0f for simplicity
@@ -71,60 +68,13 @@ public class Renderer
         // Apply camera transformations (translate, scale, etc.)
         applyCameraTransformation();
 
-        // Render the tilemap
-        for (TiledLayer layer : tiledMap.getLayers())
-        {
-            renderLayer(g, layer);
-        }
-
-        renderObjects(g);
-
-        // Render the sprites
-        renderSprites();
+        renderMapLayers();
+        renderGameObjects();
 
         // Render the debug overlay if debugMode is enabled
         if (debugMode)
         {
             renderDebugOverlay();
-        }
-    }
-
-    private void renderLayer(Graphics2D g, TiledLayer layer)
-    {
-        int tileWidth = tiledMap.getTileWidth();
-        int tileHeight = tiledMap.getTileHeight();
-        TiledTileset currentTileset = null;
-
-        for (int y = 0; y < layer.height(); y++)
-        {
-            for (int x = 0; x < layer.width(); x++)
-            {
-                long tileID = layer.tileData()[y][x];
-                TiledTileset tileset = getTilesetForTile(tileID);
-
-                if (tileset != currentTileset) currentTileset = tileset;
-
-                g.drawImage(currentTileset.getImage(), x * tileWidth, y * tileHeight,
-                        tileWidth, tileHeight, null);
-            }
-        }
-    }
-
-    private TiledTileset getTilesetForTile(long tileID)
-    {
-        for (TiledTileset tileset : tiledMap.getTilesets())
-        {
-            if (tileID >= tileset.firstGID()) return tileset;
-        }
-        return null;
-    }
-
-    private void renderObjects(Graphics2D g)
-    {
-        for (TiledObject object : tiledMap.getObjects())
-        {
-            g.fillRect((int) object.x(), (int) object.y(),
-                    (int) object.width(), (int) object.height());
         }
     }
 
@@ -140,13 +90,59 @@ public class Renderer
                 cameraManager.getCamera().getZoom());  // Zoom in/out the world
     }
 
-    // Render the sprites (currently a placeholder)
-    private void renderSprites()
+    private void renderMapLayers()
     {
-        // Placeholder for sprite rendering logic
-        for (Sprite sprite : sprites)
+        for (TiledLayer layer : tiledMap.getLayers())
         {
-            sprite.render(this.graphics);  // Assuming Sprite has a render method that takes Graphics2D
+            if (layer.name().equals("Background"))  // Rendering the Background layer as an example
+            {
+                renderLayer(layer);
+            }
+        }
+    }
+
+    private void renderLayer(TiledLayer layer)
+    {
+        int tileWidth = tiledMap.getTileWidth();
+        int tileHeight = tiledMap.getTileHeight();
+
+        for (int y = 0; y < layer.height(); y++)
+        {
+            for (int x = 0; x < layer.width(); x++)
+            {
+                long tileID = layer.tileData()[y][x];
+                if (tileID == 0) continue; // Skip empty tiles
+
+                TiledTileset tileset = getTilesetForTile(tileID);
+                if (tileset != null)
+                {
+                    int localID = (int) (tileID - tileset.firstGID());
+                    Image tileImage = tileset.getImage();
+
+                    if (tileImage != null)
+                    {
+                        // Draw the tile at the correct position
+                        graphics.drawImage(tileImage, x * tileWidth, y * tileHeight, tileWidth, tileHeight, null);
+                    }
+                }
+            }
+        }
+    }
+
+    private TiledTileset getTilesetForTile(long tileID)
+    {
+        for (TiledTileset tileset : tiledMap.getTilesets())
+        {
+            if (tileID >= tileset.firstGID()) return tileset;
+        }
+        return null;
+    }
+
+    private void renderGameObjects()
+    {
+        for (GameObject gameObject : gameObjects)
+        {
+            gameObject.draw(this.graphics);
         }
     }
 
