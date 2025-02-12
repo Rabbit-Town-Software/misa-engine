@@ -1,7 +1,5 @@
 package misa.core;
 
-import misa.scripting.LuaEventHandler;
-
 import misa.core.events.EventManager;
 
 import misa.core.events.gameplay.entity.EntityDestroyEvent;
@@ -65,9 +63,9 @@ public class GameLoop implements Runnable
     private final EventManager eventManager;
 
     // Constructor for GameLoop
-    public GameLoop(TimeSystem timeSystem, LuaEventHandler luaEventHandler, Renderer renderer)
+    public GameLoop(TimeSystem timeSystem, Renderer renderer)
     {
-        this.eventManager = new EventManager(luaEventHandler);
+        this.eventManager = new EventManager();
         this.timeSystem = timeSystem;
         this.gameCanvas = new GameCanvas(renderer);
         this.running = false;
@@ -86,7 +84,15 @@ public class GameLoop implements Runnable
     {
         Properties config = configManager.load();
 
-        // Load TARGET_FPS and TARGET_UPS, with fallbacks in case they are not set
+        if (config == null)  // Handle missing config file
+        {
+            System.out.println("Config file not found, using default settings.");
+            this.targetFPS = 60;
+            this.targetUPS = 60;
+            return;
+        }
+
+        // Load TARGET_FPS and TARGET_UPS safely
         this.targetFPS = Integer.parseInt(config.getProperty("target_fps", "60"));
         this.targetUPS = Integer.parseInt(config.getProperty("target_ups", "60"));
 

@@ -1,13 +1,10 @@
 package misa.systems.animation;
 
 import misa.entities.GameObject;
-import misa.scripting.LuaManager;
-import org.luaj.vm2.LuaValue;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 /**
  * Handles the playback of animations by sequencing through frames of
@@ -20,20 +17,9 @@ public class Animator
 {
     private static final Logger LOGGER = Logger.getLogger(Animator.class.getName());
 
-    private final LuaManager luaManager;
     private int currentFrame = 0;     // The current frame index being displayed
     private long lastFrameTime = 0;   // Timestamp of the last frame update
     private long frameDuration = 200; // Default duration for each frame in milliseconds
-
-    /**
-     * Constructor to initialize with a LuaManager instance.
-     *
-     * @param luaManager The LuaManager to handle Lua script execution.
-     */
-    public Animator(LuaManager luaManager)
-    {
-        this.luaManager = luaManager;
-    }
 
     /**
      * Animates the specified GameObject using the given frames.
@@ -59,38 +45,6 @@ public class Animator
         }
 
         renderCurrentFrame(animationFrames, gameObject, graphics);
-    }
-
-    /**
-     * Animates using parameters specified in a Lua script.
-     *
-     * @param luaScript A Lua script defining animation parameters:
-     *                  - frames: Array of file paths.
-     *                  - loop: Boolean indicating whether to loop the animation.
-     *                  - frameDuration: Frame duration in milliseconds.
-     * @param gameObject The GameObject to animate.
-     * @param graphics   The Graphics2D context for rendering.
-     */
-    public void animateFromLua(String luaScript, GameObject gameObject, Graphics2D graphics)
-    {
-        LuaValue config = luaManager.loadScript(luaScript);
-
-        if (!config.istable())
-        {
-            LOGGER.warning("Lua script must return a table with animation parameters.");
-            return;
-        }
-
-        String[] paths = Stream.of(config.get("frames").checktable().keys())
-                .map(key -> config.get("frames").get(key).tojstring())
-                .toArray(String[]::new);
-
-        boolean loop = config.get("loop").toboolean();
-        long duration = config.get("frameDuration").tolong();
-
-        setFrameDuration(duration);
-        BufferedImage[] animationFrames = AnimationLoader.loadAnimations(paths);
-        animate(animationFrames, loop, gameObject, graphics);
     }
 
     /**
