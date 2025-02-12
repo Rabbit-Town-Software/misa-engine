@@ -1,8 +1,5 @@
 package misa.systems.input;
 
-import misa.scripting.LuaManager;
-import org.luaj.vm2.LuaValue;
-
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
@@ -16,18 +13,6 @@ import java.util.logging.Logger;
 public class InputHandler
 {
     private static final Logger LOGGER = Logger.getLogger(InputHandler.class.getName());
-
-    private final LuaManager luaManager;
-
-    /**
-     * Constructor for InputHandler
-     *
-     * @param luaManager The LuaManager to handle scripting.
-     */
-    public InputHandler(LuaManager luaManager)
-    {
-        this.luaManager = luaManager;
-    }
 
     /**
      * Sets up key bindings so that the provided actions will trigger on key press and release events.
@@ -54,73 +39,6 @@ public class InputHandler
         // Setup key release action
         String releaseActionKey = key + "Release";
         setupKeyAction(component, KeyStroke.getKeyStroke("released " + key), releaseActionKey, onRelease, false);
-    }
-
-    /**
-     * Sets up key bindings using a Lua script.
-     *
-     * @param component The JComponent to attach key bindings to.
-     * @param luaScript A Lua script defining the key bindings and actions.
-     */
-    public void setupKeyBindingsFromLua(JComponent component, String luaScript)
-    {
-        var scriptResult = luaManager.loadScript(luaScript);
-
-        if (!scriptResult.istable())
-        {
-            LOGGER.warning("Lua script must return a table with key bindings.");
-            return;
-        }
-
-        // Iterate over each key-action pair in the Lua table
-        var keys = scriptResult.checktable().keys();
-        for (var key : keys)
-        {
-            var keyConfig = scriptResult.get(key);
-
-            if (!keyConfig.istable())
-            {
-                LOGGER.warning("Each key binding must be a table with 'onPress' and 'onRelease' functions.");
-                continue;
-            }
-
-            String keyName = key.tojstring();
-            LuaValue onPress = keyConfig.get("onPress");
-            LuaValue onRelease = keyConfig.get("onRelease");
-
-            setupKeyBindings(
-                    component,
-                    keyName,
-                    () -> executeLuaAction(onPress, "onPress", keyName),
-                    () -> executeLuaAction(onRelease, "onRelease", keyName)
-            );
-        }
-    }
-
-    /**
-     * Executes a Lua action.
-     *
-     * @param luaAction The Lua function to execute.
-     * @param actionType The type of action (e.g., "onPress" or "onRelease").
-     * @param keyName The key associated with the action.
-     */
-    private void executeLuaAction(LuaValue luaAction, String actionType, String keyName)
-    {
-        if (luaAction == null || !luaAction.isfunction())
-        {
-            LOGGER.warning("Invalid Lua action for " + actionType + " on key: " + keyName);
-            return;
-        }
-
-        try
-        {
-            luaAction.call();
-            LOGGER.info("Executed Lua action: " + actionType + " for key: " + keyName);
-        }
-        catch (Exception e)
-        {
-            LOGGER.log(Level.SEVERE, "Error executing Lua action for " + actionType + " on key: " + keyName, e);
-        }
     }
 
     /**

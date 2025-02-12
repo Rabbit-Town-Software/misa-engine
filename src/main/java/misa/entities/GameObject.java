@@ -2,15 +2,12 @@ package misa.entities;
 
 import misa.core.events.gameplay.tiled.TileEnterEvent;
 import misa.core.events.gameplay.tiled.TileExitEvent;
-import misa.scripting.LuaManager;
-import misa.scripting.LuaEventHandler;
 import misa.core.events.gameplay.entity.EntitySpawnEvent;
 import misa.core.events.gameplay.entity.EntityDestroyEvent;
 import misa.core.events.EventManager;
 
 import misa.systems.animation.Animator;
 import misa.systems.animation.AnimationLoader;
-import org.luaj.vm2.LuaValue;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -29,10 +26,6 @@ public abstract class GameObject
 
     protected BufferedImage[] animationFrames; // Array of animation frames
     protected Animator animator; // Current frame index
-
-    protected LuaManager luaManager; // LuaManager for handling scripting
-    protected LuaEventHandler luaEventHandler;
-    protected LuaValue luaScript; // Lua script defining behavior
     protected static EventManager eventManager;
 
     /**
@@ -40,16 +33,12 @@ public abstract class GameObject
      *
      * @param x             x coordinate
      * @param y             y coordinate
-     * @param luaManager    LuaManager for scripting
-     * @param luaEventHandler LuaEventHandler for handling Lua-based events
      */
-    public GameObject(double x, double y, LuaManager luaManager, LuaEventHandler luaEventHandler)
+    public GameObject(double x, double y)
     {
         this.x = x;
         this.y = y;
-        this.luaManager = luaManager;
-        this.luaEventHandler = luaEventHandler;
-        this.animator = new Animator(luaManager);
+        this.animator = new Animator();
         eventManager.triggerEvent(new EntitySpawnEvent(this));
     }
 
@@ -61,16 +50,6 @@ public abstract class GameObject
     public void loadAnimationFromPaths(String[] paths)
     {
         this.animationFrames = AnimationLoader.loadAnimations(paths);
-    }
-
-    /**
-     * Loads animation frames from a Lua script.
-     *
-     * @param luaScript Lua script defining file paths.
-     */
-    public void loadAnimationFromLua(String luaScript)
-    {
-        this.animationFrames = new AnimationLoader(luaManager).loadAnimationsFromLua(luaScript);
     }
 
     /**
@@ -89,53 +68,6 @@ public abstract class GameObject
         {
             LOGGER.warning("No animation frames loaded for GameObject");
         }
-    }
-
-    /**
-     * Load a Lua script for this GameObject.
-     *
-     * @param luaScriptPath Path to the Lua script
-     */
-    public void loadLuaScript(String luaScriptPath)
-    {
-        if (luaManager != null)
-        {
-            this.luaScript = luaManager.loadScript(luaScriptPath);
-        }
-        else
-        {
-            LOGGER.warning("LuaManager is not initialized. Cannot load script.");
-        }
-    }
-
-    /**
-     * Executes the Lua script, if available.
-     */
-    public void executeLuaScript()
-    {
-        if (luaScript != null && luaScript.isfunction())
-        {
-            try
-            {
-                luaScript.call();
-            }
-            catch (Exception e)
-            {
-                LOGGER.severe("Error executing Lua script for GameObject: " + e.getMessage());
-            }
-        }
-        else
-        {
-            LOGGER.fine("No Lua script or callable function available for execution.");
-        }
-    }
-
-    /**
-     * Updates the GameObject's state. Can be overridden by subclasses for Java-defined behavior.
-     */
-    public void update()
-    {
-        executeLuaScript(); // Optional Lua-based behavior
     }
 
     /**

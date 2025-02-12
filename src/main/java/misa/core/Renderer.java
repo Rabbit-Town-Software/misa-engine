@@ -92,6 +92,8 @@ public class Renderer
 
     private void renderMapLayers()
     {
+        if (tiledMap == null) return;
+
         for (TiledLayer layer : tiledMap.getLayers())
         {
             if (layer.name().equals("Background"))  // Rendering the Background layer as an example

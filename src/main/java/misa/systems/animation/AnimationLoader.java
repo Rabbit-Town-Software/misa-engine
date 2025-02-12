@@ -1,8 +1,5 @@
 package misa.systems.animation;
 
-import misa.scripting.LuaManager;
-import org.luaj.vm2.LuaValue;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -25,17 +22,6 @@ public class AnimationLoader
     private static final ConcurrentHashMap<String, BufferedImage>
             IMAGE_CACHE = new ConcurrentHashMap<>();
 
-    private final LuaManager luaManager;
-
-    /**
-     * Constructor to initialize with a LuaManager instance.
-     *
-     * @param luaManager The LuaManager to handle Lua script execution.
-     */
-    public AnimationLoader(LuaManager luaManager)
-    {
-        this.luaManager = luaManager;
-    }
 
     /**
      * Loads an array of images from the specified file paths.
@@ -49,30 +35,6 @@ public class AnimationLoader
                 .parallel()
                 .map(AnimationLoader::loadImage)
                 .toList();
-        return images.toArray(new BufferedImage[0]);
-    }
-
-    /**
-     * Loads an array of images from a Lua script that defines file paths.
-     *
-     * @param luaScript A Lua script defining an array of file paths.
-     * @return A BufferedImage array containing the loaded images.
-     */
-    public BufferedImage[] loadAnimationsFromLua(String luaScript)
-    {
-        LuaValue result = luaManager.loadScript(luaScript);
-
-        if (!result.istable())
-        {
-            LOGGER.warning("Lua script must return a table of file paths.");
-            return new BufferedImage[0];
-        }
-
-        List<BufferedImage> images = Stream.of(result.checktable().keys())
-                .parallel()
-                .map(key -> loadImage(result.get(key).tojstring()))
-                .toList();
-
         return images.toArray(new BufferedImage[0]);
     }
 
