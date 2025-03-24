@@ -2,9 +2,9 @@
 *A lightweight, open-source 2D RPG engine in Java*  
 
 ## **Overview**  
-**Misa Engine** is a completely **free and open-source** game engine built in **Java**, designed specifically for **turn-based, pixel-art RPGs**. Inspired by **classic Final Fantasy titles**, it provides the tools and systems needed to create rich RPG experiences without the overhead of a full game engine.  
+The **Misa Engine** is a completely **free and open-source** game engine built in **Java**, designed specifically for **turn-based, pixel-art RPGs**. Inspired by **classic Final Fantasy titles**, it provides the tools and systems needed to create rich RPG experiences without the overhead of a full game engine.  
 
-The goal of **Misa Engine** is to make **RPG development easier** while remaining **lightweight and flexible**, allowing developers to focus on game design rather than low-level implementation details. I want it to be as **easy** and **user-friendly** as possible for someone to pick this engine up and make a quick prototype, or even make a full game with.
+The goal of the **Misa Engine** is to make **RPG development easier** while remaining **lightweight and flexible**, allowing developers to focus on game design rather than low-level implementation details. I want it to be as **easy** and **user-friendly** as possible for someone to pick this engine up and make a quick prototype, or even make a full game with.
 
 ## **Current Status**  
 **Version:** *(No release yet)*  
@@ -77,6 +77,6 @@ I'm always open to **programmers, testers, documentation writers, and feature id
 ---
 
 ## **Final Notes**  
-Misa Engine is still in a very **early** development stage, but I’m excited to see it grow! If you’d like to **follow development**, **test it out**, or **contribute**, feel free to jump in.  
+The Misa Engine is still in a very **early** development stage, but I’m excited to see it grow! If you’d like to **follow development**, **test it out**, or **contribute**, feel free to jump in.  
 
 ⭐ **Star the repo if you find this interesting!** ⭐  
