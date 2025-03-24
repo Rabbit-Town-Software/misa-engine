@@ -51,6 +51,11 @@ public class GameLoop implements Runnable
     private int targetFPS;        // Target frame rate (frames per second)
     private int targetUPS;        // Target updates per second (for physics, game logic)
 
+    private boolean fullscreen;
+    private boolean undecorated;
+    private int windowWidth;
+    private int windowHeight;
+
     private boolean running;
     private Thread gameThread;
     private final TimeSystem timeSystem;
@@ -89,16 +94,26 @@ public class GameLoop implements Runnable
             System.out.println("Config file not found, using default settings.");
             this.targetFPS = 60;
             this.targetUPS = 60;
+            this.windowWidth = 800;
+            this.windowHeight = 600;
+            this.fullscreen = false;
+            this.undecorated = false;
             return;
         }
 
-        // Load TARGET_FPS and TARGET_UPS safely
         this.targetFPS = Integer.parseInt(config.getProperty("target_fps", "60"));
         this.targetUPS = Integer.parseInt(config.getProperty("target_ups", "60"));
+        this.windowWidth = Integer.parseInt(config.getProperty("window_width", "800"));
+        this.windowHeight = Integer.parseInt(config.getProperty("window_height", "600"));
+        this.fullscreen = Boolean.parseBoolean(config.getProperty("fullscreen", "false"));
+        this.undecorated = Boolean.parseBoolean(config.getProperty("undecorated", "false"));
 
         System.out.println("Loaded Configuration: ");
         System.out.println("Target FPS: " + targetFPS);
         System.out.println("Target UPS: " + targetUPS);
+        System.out.println("Window Size: " + windowWidth + "x" + windowHeight);
+        System.out.println("Fullscreen: " + fullscreen);
+        System.out.println("Undecorated: " + undecorated);
     }
 
     private void registerEventListeners()
@@ -233,4 +248,9 @@ public class GameLoop implements Runnable
     {
         return gameCanvas;
     }
+
+    public int getWindowWidth() { return windowWidth; }
+    public int getWindowHeight() { return windowHeight; }
+    public boolean isFullscreen() { return fullscreen; }
+    public boolean isUndecorated() { return undecorated; }
 }

@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 /**
  * Responsible for loading image arrays into BufferedImage arrays,
  * which can then be utilized for animations in the game engine.
- * Relies on LuaManager for Lua scripting.
  */
 @SuppressWarnings("unused")
 public class AnimationLoader

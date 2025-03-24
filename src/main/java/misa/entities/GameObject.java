@@ -11,6 +11,7 @@ import misa.systems.animation.AnimationLoader;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -22,23 +23,33 @@ public abstract class GameObject
 {
     private static final Logger LOGGER = Logger.getLogger(GameObject.class.getName());
 
-    protected double x, y; // coordinates
+    protected double coordinateX, coordinateY; // coordinates
 
     protected BufferedImage[] animationFrames; // Array of animation frames
     protected Animator animator; // Current frame index
     protected static EventManager eventManager;
 
+    protected boolean shouldAnimate;
+    protected boolean shouldLoop;
+
     /**
      * Constructor for GameObject
      *
-     * @param x             x coordinate
-     * @param y             y coordinate
+     * @param coordinateX             x coordinate
+     * @param coordinateY             y coordinate
+     * @param shouldAnimate           boolean for whether it should animate or not
+     * @param shouldLoop              boolean for whether it should loop or not
      */
-    public GameObject(double x, double y)
+    public GameObject(double coordinateX, double coordinateY,
+                      boolean shouldAnimate, boolean shouldLoop,
+                      BufferedImage[] animationFrames)
     {
-        this.x = x;
-        this.y = y;
+        this.coordinateX = coordinateX;
+        this.coordinateY = coordinateY;
+        this.shouldAnimate = shouldAnimate;
+        this.shouldLoop = shouldLoop;
         this.animator = new Animator();
+        this.animationFrames = animationFrames;
         eventManager.triggerEvent(new EntitySpawnEvent(this));
     }
 
@@ -46,11 +57,14 @@ public abstract class GameObject
      * Loads animation frames from file paths.
      *
      * @param paths Array of file paths for animation frames.
+     * @return return the animation arrays.
      */
-    public void loadAnimationFromPaths(String[] paths)
+    public BufferedImage[] loadAnimations(String[] paths)
     {
-        this.animationFrames = AnimationLoader.loadAnimations(paths);
+        return AnimationLoader.loadAnimations(paths);
     }
+
+
 
     /**
      * Animates the GameObject using the loaded frames.
@@ -58,7 +72,7 @@ public abstract class GameObject
      * @param graphics Graphics2D context for rendering.
      * @param shouldLoop Whether the animation should loop.
      */
-    public void animate(Graphics2D graphics, boolean shouldLoop)
+    public void animate(BufferedImage[] animationFrames, Graphics2D graphics, boolean shouldLoop)
     {
         if (animationFrames != null)
         {
@@ -77,9 +91,19 @@ public abstract class GameObject
      */
     public void draw(Graphics graphics)
     {
-        if (graphics instanceof Graphics2D)
+        if (graphics instanceof Graphics2D graphics2D)
         {
-            animate((Graphics2D) graphics, true);
+            if (shouldAnimate)
+            {
+                animate(animationFrames, graphics2D, shouldLoop);
+            }
+            else
+            {
+                LOGGER.warning("Shouldn't animate. Add in static art capability Case, seriously.......!!!!!");
+                LOGGER.warning("Static fallback — drawing rectangle.");
+                graphics.setColor(Color.RED);
+                graphics.fillRect((int) coordinateX, (int) coordinateY, 72, 72);
+            }
         }
         else
         {
@@ -105,14 +129,17 @@ public abstract class GameObject
         eventManager.triggerEvent(new TileExitEvent(tileX, tileY));
     }
 
-    // Getters and setters for position
-    public double getX() { return x; }
-    public double getY() { return y; }
 
-    public void setPosition(double x, double y)
+
+
+    // Getters and setters for position
+    public double getCoordinateX() { return coordinateX; }
+    public double getCoordinateY() { return coordinateY; }
+
+    public void setPosition(double coordinateX, double coordinateY)
     {
-        this.x = x;
-        this.y = y;
+        this.coordinateX = coordinateX;
+        this.coordinateY = coordinateY;
     }
 
     /**
@@ -123,5 +150,14 @@ public abstract class GameObject
     public static void setEventManager(EventManager manager)
     {
         eventManager = manager;
+    }
+
+    public void setShouldAnimate(boolean value) { this.shouldAnimate = value; }
+    public void setShouldLoop(boolean value) { this.shouldLoop = value; }
+
+    public void setAnimationFrames(BufferedImage[] animationFrames)
+    {
+        this.animationFrames = animationFrames;
+        LOGGER.warning("Animation frames set to " + Arrays.toString(animationFrames));
     }
 }

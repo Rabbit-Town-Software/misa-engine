@@ -1,35 +1,50 @@
 package misa.core;
 
-import javax.swing.JFrame;
+import javax.swing.*;
 
 @SuppressWarnings("unused")
 public class GameWindow
 {
-
-    private final GameLoop gameLoop;
-
-    public GameWindow(GameLoop gameLoop)
+    public static void launchGame(String title, int width, int height,
+                                  boolean fullscreen, boolean undecorated,
+                                  GameLoop gameLoop)
     {
-        this.gameLoop = gameLoop;
-        initialize();
+        SwingUtilities.invokeLater(() ->
+        {
+            JFrame frame = new JFrame(title);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+            frame.setUndecorated(undecorated);
+
+            GameCanvas gameCanvas = gameLoop.getGameCanvas();
+            frame.add(gameCanvas);
+
+            if (fullscreen)
+            {
+                frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                frame.setResizable(false);
+            }
+            else
+            {
+                frame.setSize(width, height);
+                frame.setLocationRelativeTo(null);
+                frame.setResizable(false);
+            }
+
+            frame.setVisible(true);
+            gameLoop.start();
+        });
     }
 
-    private void initialize()
+    // Overload: Default title and resolution, windowed mode
+    public static void launchGame(GameLoop gameLoop)
     {
-        JFrame frame = new JFrame("Game");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // Directly add the game canvas to the frame
-        GameCanvas canvas = gameLoop.getGameCanvas();
-        frame.add(canvas);
-
-        // Set window size and make it visible
-        frame.setSize(800, 600);
-        frame.setVisible(true);
+        launchGame("Untitled Game", 800, 600, false, false, gameLoop);
     }
 
-    public void start()
+    // Overload: Custom size + fullscreen
+    public static void launchGame(String title, int width, int height, boolean fullscreen, GameLoop gameLoop)
     {
-        gameLoop.start();
+        launchGame(title, width, height, fullscreen, false, gameLoop);
     }
 }

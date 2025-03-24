@@ -16,7 +16,8 @@ public class EntitySpawnListener implements EventListener<EntitySpawnEvent>
         GameObject entity = event.getEntity();
 
         // Print information about the entity being spawned
-        System.out.println("Entity spawned at position: (" + entity.getX() + ", " + entity.getY() + ")");
+        System.out.println("Entity spawned at position: (" + entity.getCoordinateX() +
+                ", " + entity.getCoordinateY() + ")");
 
         // You could add more logic here for handling the entity, like adding it to a list of active entities
         // Example: GameState.addEntity(entity);
