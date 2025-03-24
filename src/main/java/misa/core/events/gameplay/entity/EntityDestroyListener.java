@@ -19,7 +19,8 @@ public class EntityDestroyListener implements EventListener<EntityDestroyEvent>
     {
         // Handle the event in Java (no Lua logic needed)
         GameObject entity = event.getEntity();
-        System.out.println("Entity destroyed at position: (" + entity.getX() + ", " + entity.getY() + ")");
+        System.out.println("Entity destroyed at position: (" + entity.getCoordinateX() + ", " +
+                entity.getCoordinateY() + ")");
 
         // You can add more logic here for cleaning up or removing the entity from game state.
         // Example: GameState.removeEntity(entity);

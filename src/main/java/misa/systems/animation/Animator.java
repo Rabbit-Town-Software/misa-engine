@@ -93,7 +93,7 @@ public class Animator
     private void renderCurrentFrame(BufferedImage[] animationFrames, GameObject gameObject, Graphics2D graphics)
     {
         BufferedImage currentFrameImage = animationFrames[currentFrame];
-        graphics.drawImage(currentFrameImage, (int) gameObject.getX(), (int) gameObject.getY(), null);
+        graphics.drawImage(currentFrameImage, (int) gameObject.getCoordinateX(), (int) gameObject.getCoordinateY(), null);
     }
 
     /**
