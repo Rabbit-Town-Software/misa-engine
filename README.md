@@ -23,11 +23,11 @@ The engine is still in very early development, and I currently have pushed Major
 - [ ] **Animation System** – Manages sprite animations  
 - [ ] **Game Loop Architecture** – Core update/render loop  
 - [ ] **Configuration System** – Allows flexible game settings  
-- [ ] **Rendering System** – Handles drawing sprites, tiles, and UI  
+- [ ] **Rendering System** – Handles drawing sprites, tiles, and UI
+- [ ] **Input Handling** - Handles All User Input
 
-### **Major Update 2: Input & Physics**  
-- [ ] Input Handling (Keyboard & Controller)  
-- [ ] Physics System (Collisions, movement)  
+### **Major Update 2: Physics**  
+- [ ] **Physics System** - In Depth Physics System (Collision, Movement, etc..)
 
 ### **Major Update 3: Lighting & NPCs**  
 - [ ] Lighting System (Dynamic & static lighting)  
