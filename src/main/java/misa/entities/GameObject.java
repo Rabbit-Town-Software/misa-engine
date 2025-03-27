@@ -155,7 +155,7 @@ public abstract class GameObject
     public void setShouldAnimate(boolean value) { this.shouldAnimate = value; }
     public void setShouldLoop(boolean value) { this.shouldLoop = value; }
 
-    public void setAnimationFrames(BufferedImage[] animationFrames)
+    public void setAnimation(BufferedImage[] animationFrames)
     {
         this.animationFrames = animationFrames;
         LOGGER.warning("Animation frames set to " + Arrays.toString(animationFrames));

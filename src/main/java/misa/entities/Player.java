@@ -7,8 +7,10 @@ import java.awt.image.BufferedImage;
  */
 public class Player extends GameObject
 {
-    public Player(double coordinateX, double coordinateY,
-                  boolean shouldAnimate, boolean shouldLoop,
+    public Player(double coordinateX,
+                  double coordinateY,
+                  boolean shouldAnimate,
+                  boolean shouldLoop,
                   BufferedImage[] animationFrames)
     {
         super(coordinateX, coordinateY, shouldAnimate, shouldLoop, animationFrames);

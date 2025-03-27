@@ -39,6 +39,10 @@ import misa.core.events.rendering.RenderStartEvent;
 import misa.core.events.rendering.RenderStartListener;
 
 import misa.data.config.ConfigManager;
+import misa.entities.GameObject;
+import misa.entities.Player;
+import misa.systems.camera.Camera;
+import misa.systems.camera.CameraBoundary;
 
 import java.util.Properties;
 
@@ -66,6 +70,14 @@ public class GameLoop implements Runnable
 
     private final ConfigManager configManager;
     private final EventManager eventManager;
+    private final Renderer renderer;
+
+    private final Player defaultPlayer = new Player(
+            0,
+            0,
+            true,
+            true,
+            null);
 
     // Constructor for GameLoop
     public GameLoop(TimeSystem timeSystem, Renderer renderer)
@@ -74,6 +86,7 @@ public class GameLoop implements Runnable
         this.timeSystem = timeSystem;
         this.gameCanvas = new GameCanvas(renderer);
         this.running = false;
+        this.renderer = renderer;
 
         // Initialize and load configuration
         configManager = new ConfigManager("config/config.properties");
@@ -222,6 +235,33 @@ public class GameLoop implements Runnable
         }
     }
 
+    public static GameLoop createDefault()
+    {
+        EventManager eventManager = new EventManager();
+        GameObject.setEventManager(eventManager);
+
+        TimeSystem timeSystem = new TimeSystem(1.0f, eventManager);
+
+        Camera camera = new Camera(0, 0, 1.0f, 0f, new float[] { 0, 0, 640, 480 });
+        CameraBoundary boundary = new CameraBoundary(0, 0, 640, 480);
+
+        Renderer renderer = new Renderer(camera, boundary, null);
+
+        return new GameLoop(timeSystem, renderer);
+    }
+
+    public void addGameObject(GameObject gameObject)
+    {
+        this.renderer.addGameObject(gameObject);
+    }
+
+    public Player createDefaultPlayer()
+    {
+        this.renderer.addGameObject(defaultPlayer);
+        return this.defaultPlayer;
+    }
+
+
     // Method to handle game logic updates
     public void update()
     {
@@ -244,13 +284,11 @@ public class GameLoop implements Runnable
         // Here you'd check for specific input actions like key presses, mouse clicks, etc.
     }
 
-    public GameCanvas getGameCanvas()
-    {
-        return gameCanvas;
-    }
-
+    public GameCanvas getGameCanvas() { return gameCanvas; }
+    public Renderer getRenderer() { return renderer; }
     public int getWindowWidth() { return windowWidth; }
     public int getWindowHeight() { return windowHeight; }
     public boolean isFullscreen() { return fullscreen; }
     public boolean isUndecorated() { return undecorated; }
+    public Player getDefaultPlayer() { return defaultPlayer; }
 }

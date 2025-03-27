@@ -4,6 +4,7 @@ import misa.data.tiled2misa.TiledLayer;
 import misa.data.tiled2misa.TiledMap;
 import misa.data.tiled2misa.TiledTileset;
 import misa.entities.GameObject;
+import misa.entities.Player;
 import misa.systems.camera.Camera;
 import misa.systems.camera.CameraManager;
 import misa.systems.camera.CameraBoundary;
@@ -66,7 +67,7 @@ public class Renderer
         cameraManager.update(1.0f); // Assuming deltaTime = 1.0f for simplicity
 
         // Apply camera transformations (translate, scale, etc.)
-        //applyCameraTransformation();
+        applyCameraTransformation();
 
         renderMapLayers();
         renderGameObjects();
