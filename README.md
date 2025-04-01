@@ -16,13 +16,13 @@ The engine is still in very early development, and I currently have pushed Major
 
 ## **Development Timeline**  
 ###  **Major Update 1: Core Mechanics**
-- [ ] **Global Time System** – Manages in-game time and update cycles  
+- [x] **Global Time System** – Manages in-game time and update cycles  
 - [ ] **Camera System** – Controls player/world view  
-- [ ] **Tiled2Misa** – Parses and renders **Tiled** maps  
-- [ ] **Event System** – Handles game triggers and scripting logic  
-- [ ] **Animation System** – Manages sprite animations  
-- [ ] **Game Loop Architecture** – Core update/render loop  
-- [ ] **Configuration System** – Allows flexible game settings  
+- [x] **Tiled2Misa** – Parses and renders **Tiled** maps  
+- [x] **Event System** – Handles game triggers and scripting logic  
+- [x] **Animation System** – Manages sprite animations  
+- [x] **Game Loop Architecture** – Core update/render loop  
+- [x] **Configuration System** – Allows flexible game settings  
 - [ ] **Rendering System** – Handles drawing sprites, tiles, and UI
 - [ ] **Input Handling** - Handles All User Input
 
