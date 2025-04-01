@@ -2,18 +2,18 @@ package misa.data.tiled2misa;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.File;
+import java.io.InputStream;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Represents a tileset in a Tiled map.
- * <p>
- * - `source`: File path to the tileset image (e.g., "tileset.png").
- * - `firstGID`: The first Global Tile ID associated with this tileset.
  */
 @SuppressWarnings("unused")
 public class TiledTileset
 {
+    private static final Logger LOGGER = Logger.getLogger(TiledTileset.class.getName());
+
     private final String source;  // File path to the tileset image
     private final int firstGID;   // First Global Tile ID
     private final Image image;    // Image of the tileset
@@ -28,7 +28,16 @@ public class TiledTileset
     {
         this.source = source;
         this.firstGID = firstGID;
-        this.image = loadImage(source);  // Load the image when the tileset is created
+        this.image = loadImage(source);
+
+        if (image != null)
+        {
+            LOGGER.info("✅ Tileset image loaded: " + source);
+        }
+        else
+        {
+            LOGGER.severe("❌ Failed to load tileset image: " + source + " (Check file path and format)");
+        }
     }
 
     /**
@@ -39,41 +48,46 @@ public class TiledTileset
      */
     private Image loadImage(String source)
     {
-        try
+        try (InputStream stream = getClass().getClassLoader().getResourceAsStream(source))
         {
-            return ImageIO.read(new File(source));  // Load the image from the file
+            if (stream == null)
+            {
+                LOGGER.severe("📛 Image resource not found on classpath: " + source);
+                return null;
+            }
+
+            Image img = ImageIO.read(stream);
+            if (img == null)
+            {
+                LOGGER.warning("⚠️ ImageIO.read returned null — unsupported format or corrupted image: " + source);
+            }
+
+            return img;
         }
         catch (IOException e)
         {
-            e.printStackTrace();  // Handle the error gracefully
+            LOGGER.severe("💥 IOException while loading image resource: " + source);
+            e.printStackTrace();
+            return null;
         }
-        return null;  // Return null if the image can't be loaded
     }
 
-    /**
-     * Checks if a given tile ID belongs to this tileset.
-     *
-     * @param tileID The tile ID to check.
-     * @return True if the tile ID belongs to this tileset, false otherwise.
-     */
+
     public boolean containsTile(int tileID)
     {
         return tileID >= firstGID;
     }
 
-    // Getter for the image
     public Image getImage()
     {
         return image;
     }
 
-    // Getter for the source
     public String getSource()
     {
         return source;
     }
 
-    // Getter for the firstGID
     public int firstGID()
     {
         return firstGID;
