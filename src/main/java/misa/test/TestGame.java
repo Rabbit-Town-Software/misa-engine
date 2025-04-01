@@ -32,10 +32,10 @@ public class TestGame
 
         player.setAnimation(player.loadAnimations(new String[]
                 {
-                        "test_assets/girlidle/idleSouth/girlIdle000.png",
-                        "test_assets/girlidle/idleSouth/girlIdle001.png",
-                        "test_assets/girlidle/idleSouth/girlIdle002.png",
-                        "test_assets/girlidle/idleSouth/girlIdle003.png",
+                        "girl/Idle/South/girlIdle000.png",
+                        "girl/Idle/South/girlIdle001.png",
+                        "girl/Idle/South/girlIdle002.png",
+                        "girl/Idle/South/girlIdle003.png",
                 }));
 
         GameWindow.launchGame(gameLoop);
