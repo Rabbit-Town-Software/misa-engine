@@ -22,9 +22,9 @@ public class TestGame
 
         TiledParser tiledParser = new TiledParser(new ArrayList<>());
 
-        tiledParser.setResourceBasePath("test_assets/maps/");
+        tiledParser.setResourceBasePath("maps/");
 
-        InputStream stream = TestGame.class.getClassLoader().getResourceAsStream("test_assets/maps/testmap.tmx");
+        InputStream stream = TestGame.class.getClassLoader().getResourceAsStream("maps/testmap.tmx");
         TiledMap tiledMap = tiledParser.loadFromInputStream(stream);
 
 
