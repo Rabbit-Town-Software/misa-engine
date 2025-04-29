@@ -1,138 +1,227 @@
 package misa.core;
 
-import misa.core.events.EventManager;
-
-import misa.core.events.gameplay.entity.EntityDestroyEvent;
-import misa.core.events.gameplay.entity.EntityDestroyListener;
-import misa.core.events.gameplay.entity.EntitySpawnEvent;
-import misa.core.events.gameplay.entity.EntitySpawnListener;
-
-import misa.core.events.gameplay.tiled.TileEnterEvent;
-import misa.core.events.gameplay.tiled.TileEnterListener;
-import misa.core.events.gameplay.tiled.TileExitEvent;
-import misa.core.events.gameplay.tiled.TileExitListener;
-
-import misa.core.events.gameplay.time.TimeChangeEvent;
-import misa.core.events.gameplay.time.TimeChangeListener;
-
-import misa.core.events.input.KeyPressEvent;
-import misa.core.events.input.KeyPressListener;
-import misa.core.events.input.KeyReleaseEvent;
-import misa.core.events.input.KeyReleaseListener;
-import misa.core.events.input.MouseClickEvent;
-import misa.core.events.input.MouseClickListener;
-import misa.core.events.input.MouseMoveEvent;
-import misa.core.events.input.MouseMoveListener;
-
-import misa.core.events.lifecycle.GameOverEvent;
-import misa.core.events.lifecycle.GameOverListener;
-import misa.core.events.lifecycle.GamePauseEvent;
-import misa.core.events.lifecycle.GamePauseListener;
-import misa.core.events.lifecycle.GameResumeEvent;
-import misa.core.events.lifecycle.GameResumeListener;
-import misa.core.events.lifecycle.GameStartEvent;
-import misa.core.events.lifecycle.GameStartListener;
-
-import misa.core.events.rendering.RenderEndEvent;
-import misa.core.events.rendering.RenderEndListener;
-import misa.core.events.rendering.RenderStartEvent;
-import misa.core.events.rendering.RenderStartListener;
-
+import misa.core.events.*;
+import misa.core.events.gameplay.entity.*;
+import misa.core.events.gameplay.tiled.*;
+import misa.core.events.gameplay.time.*;
+import misa.core.events.input.*;
+import misa.core.events.lifecycle.*;
+import misa.core.events.rendering.*;
 import misa.data.config.ConfigManager;
 import misa.entities.GameObject;
-import misa.entities.Player;
-import misa.systems.camera.Camera;
-import misa.systems.camera.CameraBoundary;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
- * The main game loop class, responsible for updating the game state and rendering.
+ * GameLoop handles the main game cycle: updating and rendering at a target rate.
+ * <p>
+ * It manages timing, frame control, and coordination of the update/render process,
+ * while also managing the Event system and configuration settings.
  */
 @SuppressWarnings("unused")
 public class GameLoop implements Runnable
 {
-    private int targetFPS;        // Target frame rate (frames per second)
-    private int targetUPS;        // Target updates per second (for physics, game logic)
-
+    // Timing and configuration variables
+    private int targetFPS;
+    private int targetUPS;
     private boolean fullscreen;
     private boolean undecorated;
     private int windowWidth;
     private int windowHeight;
 
+    // Main loop control
     private boolean running;
     private Thread gameThread;
+
+    // Core systems
     private final TimeSystem timeSystem;
     private final GameCanvas gameCanvas;
-
-    private double delta;
-    private int frames = 0, ticks = 0;
-
-    private final ConfigManager configManager;
-    private final EventManager eventManager;
     private final Renderer renderer;
 
-    private final Player defaultPlayer = new Player(
-            0,
-            0,
-            true,
-            true,
-            null);
+    // Internal counters for timing
+    private double delta;
+    private int frames;
+    private int ticks;
+    private float deltaTime;
 
-    // Constructor for GameLoop
+    // Event system and configuration manager
+    private final ConfigManager configManager;
+    private final EventManager eventManager;
+
+    // Lists of objects that need starting and updating
+    private final List<Startable> startables;
+    private final List<Updatable> updatables;
+
+    /**
+     * Creates a new GameLoop.
+     *
+     * @param timeSystem The TimeSystem instance to manage time-based updates.
+     * @param renderer   The Renderer responsible for drawing game objects.
+     */
     public GameLoop(TimeSystem timeSystem, Renderer renderer)
     {
         this.eventManager = new EventManager();
+        GameObject.setEventManager(eventManager); // Make sure GameObjects know about the EventManager
+
         this.timeSystem = timeSystem;
+        this.renderer = renderer;
         this.gameCanvas = new GameCanvas(renderer);
         this.running = false;
-        this.renderer = renderer;
+        this.startables = new ArrayList<>();
+        this.updatables = new ArrayList<>();
 
-        // Initialize and load configuration
-        configManager = new ConfigManager("config/config.properties");
-        loadConfiguration();
-
-        registerEventListeners();
+        this.configManager = new ConfigManager("config/config.properties");
+        loadConfiguration(); // Load settings like FPS, screen size
+        registerEventListeners(); // Wire up core event listeners
     }
 
     /**
-     * Loads configuration settings from the properties file.
+     * Starts the game loop in a new thread.
+     */
+    public void start()
+    {
+        if (running) return;
+        running = true;
+        gameThread = new Thread(this);
+        gameThread.start();
+    }
+
+    /**
+     * Stops the game loop and waits for the thread to finish.
+     */
+    public void stop()
+    {
+        running = false;
+        try
+        {
+            gameThread.join();
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Starts all Startable objects before entering the main loop.
+     */
+    private void startAll()
+    {
+        for (Startable startable : startables)
+        {
+            startable.start();
+        }
+    }
+
+    /**
+     * Main game loop logic.
+     * <p>
+     * Handles updates and renders at the configured rates.
+     */
+    @Override
+    public void run()
+    {
+        startAll();
+
+        long lastTime = System.nanoTime();
+        long timer = System.currentTimeMillis();
+
+        while (running)
+        {
+            long now = System.nanoTime();
+            deltaTime = (now - lastTime) / 1_000_000_000.0f; // Time since last frame
+            double nsPerUpdate = 1_000_000_000.0 / targetUPS;
+            delta += (now - lastTime) / nsPerUpdate;
+            lastTime = now;
+
+            // Update the game state if enough time has passed
+            while (delta >= 1)
+            {
+                ticks++;
+                update();
+                delta--;
+            }
+
+            frames++;
+            render();
+
+            // Every second, print FPS and UPS
+            if (System.currentTimeMillis() - timer >= 1000)
+            {
+                timer += 1000;
+                System.out.println("FPS: " + frames + " | UPS: " + ticks);
+                frames = 0;
+                ticks = 0;
+            }
+
+            // Frame rate control: sleep to avoid running too fast
+            long frameTime = System.nanoTime() - now;
+            long nsPerFrame = (long) (1_000_000_000.0 / targetFPS);
+            long sleepMs = (nsPerFrame - frameTime) / 1_000_000;
+            if (sleepMs > 0)
+            {
+                try
+                {
+                    Thread.sleep(sleepMs);
+                }
+                catch (InterruptedException ignored) {}
+            }
+        }
+    }
+
+    /**
+     * Updates all registered Updatable objects and the TimeSystem.
+     */
+    private void update()
+    {
+        timeSystem.update(deltaTime);
+
+        for (Updatable updatable : updatables)
+        {
+            updatable.update();
+        }
+    }
+
+    /**
+     * Triggers a repaint of the game canvas.
+     */
+    private void render()
+    {
+        gameCanvas.repaint();
+    }
+
+    /**
+     * Loads game configuration from a properties file.
      */
     private void loadConfiguration()
     {
         Properties config = configManager.load();
-
-        if (config == null)  // Handle missing config file
+        if (config == null)
         {
-            System.out.println("Config file not found, using default settings.");
-            this.targetFPS = 60;
-            this.targetUPS = 60;
-            this.windowWidth = 800;
-            this.windowHeight = 600;
-            this.fullscreen = false;
-            this.undecorated = false;
+            targetFPS = 60;
+            targetUPS = 60;
+            windowWidth = 800;
+            windowHeight = 600;
+            fullscreen = false;
+            undecorated = false;
             return;
         }
 
-        this.targetFPS = Integer.parseInt(config.getProperty("target_fps", "60"));
-        this.targetUPS = Integer.parseInt(config.getProperty("target_ups", "60"));
-        this.windowWidth = Integer.parseInt(config.getProperty("window_width", "800"));
-        this.windowHeight = Integer.parseInt(config.getProperty("window_height", "600"));
-        this.fullscreen = Boolean.parseBoolean(config.getProperty("fullscreen", "false"));
-        this.undecorated = Boolean.parseBoolean(config.getProperty("undecorated", "false"));
-
-        System.out.println("Loaded Configuration: ");
-        System.out.println("Target FPS: " + targetFPS);
-        System.out.println("Target UPS: " + targetUPS);
-        System.out.println("Window Size: " + windowWidth + "x" + windowHeight);
-        System.out.println("Fullscreen: " + fullscreen);
-        System.out.println("Undecorated: " + undecorated);
+        targetFPS = Integer.parseInt(config.getProperty("target_fps", "60"));
+        targetUPS = Integer.parseInt(config.getProperty("target_ups", "60"));
+        windowWidth = Integer.parseInt(config.getProperty("window_width", "800"));
+        windowHeight = Integer.parseInt(config.getProperty("window_height", "600"));
+        fullscreen = Boolean.parseBoolean(config.getProperty("fullscreen", "false"));
+        undecorated = Boolean.parseBoolean(config.getProperty("undecorated", "false"));
     }
 
+    /**
+     * Registers default event listeners for gameplay, input, and lifecycle events.
+     */
     private void registerEventListeners()
     {
-        System.out.println("Registering event listeners... ");
-
         eventManager.addListener(EntitySpawnEvent.class, new EntitySpawnListener());
         eventManager.addListener(EntityDestroyEvent.class, new EntityDestroyListener());
         eventManager.addListener(TileEnterEvent.class, new TileEnterListener());
@@ -150,145 +239,103 @@ public class GameLoop implements Runnable
         eventManager.addListener(RenderStartEvent.class, new RenderStartListener());
     }
 
-    // Method to start the game loop in a separate thread
-    public void start()
+    /**
+     * Adds a Startable object to be started when the game begins.
+     *
+     * @param startable Object that implements Startable.
+     */
+    public void addStartable(Startable startable)
     {
-        if (running) return;
-        running = true;
-        gameThread = new Thread(this);
-        gameThread.start();
+        startables.add(startable);
     }
 
-    // Stop the game loop
-    public void stop()
+    /**
+     * Adds an Updatable object to be updated every tick.
+     *
+     * @param updatable Object that implements Updatable.
+     */
+    public void addUpdatable(Updatable updatable)
     {
-        running = false;
-        try
-        {
-            gameThread.join();
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
+        updatables.add(updatable);
     }
 
-    @SuppressWarnings("BusyWait")
-    @Override
-    public void run()
-    {
-        long lastTime = System.nanoTime();
-        long previousTime = lastTime;
-        long timer = System.currentTimeMillis();
-
-        while (running)
-        {
-            long now = System.nanoTime();
-            // Nanoseconds per update
-            double NS_PER_UPDATE = 1000000000.0 / targetUPS;
-            delta += (now - lastTime) / NS_PER_UPDATE;
-            lastTime = now;
-
-            // If enough time has passed, update and render
-            while (delta >= 1)
-            {
-                ticks++;
-                update();  // Update game logic
-                delta -= 1;
-            }
-
-            frames++;
-            render();  // Render the game world
-
-            // FPS and UPS count (optional for debugging)
-            if (System.currentTimeMillis() - timer >= 1000)
-            {
-                timer += 1000;
-                System.out.println("FPS: " + frames + " | UPS: " + ticks);
-                frames = 0;
-                ticks = 0;
-            }
-
-            // Calculate the time taken for the frame
-            long endTime = System.nanoTime();
-            long frameTime = endTime - previousTime;
-
-            // Sleep only if the frame was completed before the target time
-            // Nanoseconds per frame
-            double NS_PER_FRAME = 1000000000.0 / targetFPS;
-            long sleepTime = (long) ((NS_PER_FRAME - frameTime) / 1000000); // Convert to milliseconds
-
-            // Adjust the sleep time to avoid unnecessary sleep and busy-waiting
-            if (sleepTime > 0)
-            {
-                try
-                {
-                    Thread.sleep(sleepTime); // Sleep for the remaining time to match target FPS
-                }
-                catch (InterruptedException e)
-                {
-                    e.printStackTrace();
-                }
-            }
-
-            previousTime = System.nanoTime();
-        }
-    }
-
-    public static GameLoop createDefault()
-    {
-        EventManager eventManager = new EventManager();
-        GameObject.setEventManager(eventManager);
-
-        TimeSystem timeSystem = new TimeSystem(1.0f, eventManager);
-
-        Camera camera = new Camera(0, 0, 1.0f, 0f, new float[] { 0, 0, 640, 480 });
-        CameraBoundary boundary = new CameraBoundary(0, 0, 640, 480);
-
-        Renderer renderer = new Renderer(camera, boundary, null);
-
-        return new GameLoop(timeSystem, renderer);
-    }
-
+    /**
+     * Adds a GameObject to the Renderer for drawing.
+     *
+     * @param gameObject The GameObject to add.
+     */
     public void addGameObject(GameObject gameObject)
     {
-        this.renderer.addGameObject(gameObject);
+        renderer.addGameObject(gameObject);
     }
 
-    public Player createDefaultPlayer()
+    /**
+     * Gets the time passed since the last frame.
+     *
+     * @return Delta time in seconds.
+     */
+    public float getDeltaTime()
     {
-        this.renderer.addGameObject(defaultPlayer);
-        return this.defaultPlayer;
+        return deltaTime;
     }
 
-
-    // Method to handle game logic updates
-    public void update()
+    /**
+     * Gets the GameCanvas used for rendering.
+     *
+     * @return The GameCanvas.
+     */
+    public GameCanvas getGameCanvas()
     {
-        // Handle input (keyboard, mouse, etc.)
-        handleInput();
-
-        // Update game logic (e.g., moving entities, collision detection, AI)
-        timeSystem.update(0); // Update in-game time (if you have time system)
+        return gameCanvas;
     }
 
-    // Method to render the game world
-    public void render()
+    /**
+     * Gets the Renderer responsible for drawing.
+     *
+     * @return The Renderer.
+     */
+    public Renderer getRenderer()
     {
-        gameCanvas.repaint();
+        return renderer;
     }
 
-    // Handle input (keyboard, mouse, etc.)
-    private void handleInput()
+    /**
+     * Gets the width of the game window.
+     *
+     * @return Width in pixels.
+     */
+    public int getWindowWidth()
     {
-        // Here you'd check for specific input actions like key presses, mouse clicks, etc.
+        return windowWidth;
     }
 
-    public GameCanvas getGameCanvas() { return gameCanvas; }
-    public Renderer getRenderer() { return renderer; }
-    public int getWindowWidth() { return windowWidth; }
-    public int getWindowHeight() { return windowHeight; }
-    public boolean isFullscreen() { return fullscreen; }
-    public boolean isUndecorated() { return undecorated; }
-    public Player getDefaultPlayer() { return defaultPlayer; }
+    /**
+     * Gets the height of the game window.
+     *
+     * @return Height in pixels.
+     */
+    public int getWindowHeight()
+    {
+        return windowHeight;
+    }
+
+    /**
+     * Checks if the window is set to fullscreen.
+     *
+     * @return True if fullscreen.
+     */
+    public boolean isFullscreen()
+    {
+        return fullscreen;
+    }
+
+    /**
+     * Checks if the window is undecorated (no borders).
+     *
+     * @return True if undecorated.
+     */
+    public boolean isUndecorated()
+    {
+        return undecorated;
+    }
 }

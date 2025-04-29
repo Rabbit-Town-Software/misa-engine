@@ -4,160 +4,168 @@ import misa.data.tiled2misa.TiledLayer;
 import misa.data.tiled2misa.TiledMap;
 import misa.data.tiled2misa.TiledTileset;
 import misa.entities.GameObject;
-import misa.entities.Player;
 import misa.systems.camera.Camera;
-import misa.systems.camera.CameraManager;
-import misa.systems.camera.CameraBoundary;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 
-@SuppressWarnings("unused")
+/**
+ * Renderer is responsible for drawing the game world onto the screen.
+ * <p>
+ * It handles rendering tilemaps, GameObjects, and managing camera offsets
+ * to simulate movement through a larger world space.
+ */
 public class Renderer
 {
-    private Graphics2D graphics;
-    private final CameraManager cameraManager;
-    private TiledMap tiledMap;
-    private final ArrayList<GameObject> gameObjects;
-    private boolean debugMode;
+    // Camera controls the view into the world
+    private final Camera camera;
 
-    public Renderer(Camera camera, CameraBoundary cameraBoundary, TiledMap tiledMap)
+    // Currently loaded TiledMap, if any
+    private TiledMap tiledMap;
+
+    // List of all game objects that should be drawn
+    private final ArrayList<GameObject> gameObjects = new ArrayList<>();
+
+    // How many pixels represent one unit in world space
+    private final int pixelsPerUnit;
+
+    /**
+     * Creates a new Renderer.
+     *
+     * @param camera         Camera controlling the view offset.
+     * @param tiledMap       Initial map to render (can be null).
+     * @param pixelsPerUnit  Number of pixels that represent one world unit (must be > 0).
+     */
+    public Renderer(Camera camera, TiledMap tiledMap, int pixelsPerUnit)
     {
-        this.cameraManager = new CameraManager(camera, cameraBoundary);
+        if (pixelsPerUnit <= 0)
+            throw new IllegalArgumentException("pixelsPerUnit must be > 0.");
+
+        this.camera = camera;
         this.tiledMap = tiledMap;
-        this.gameObjects = new ArrayList<>();
-        this.debugMode = false;
+        this.pixelsPerUnit = pixelsPerUnit;
     }
 
+    /**
+     * Adds a GameObject to be rendered every frame.
+     *
+     * @param gameObject The object to add.
+     */
     public void addGameObject(GameObject gameObject)
     {
-        this.gameObjects.add(gameObject);
+        gameObjects.add(gameObject);
     }
 
-    public void removeGameObject(GameObject gameObject)
+    /**
+     * Sets the current TiledMap to render.
+     *
+     * @param tiledMap The new TiledMap.
+     */
+    public void setTiledMap(TiledMap tiledMap)
     {
-        this.gameObjects.remove(gameObject);
+        this.tiledMap = tiledMap;
     }
 
-    public void toggleDebugMode(boolean debugMode)
+    /**
+     * Renders the map and all game objects.
+     *
+     * @param graphics2D The Graphics2D context to draw onto.
+     */
+    public void render(Graphics2D graphics2D)
     {
-        this.debugMode = debugMode;
+        // Reset any previous transforms so we draw in clean pixel space
+        graphics2D.setTransform(new AffineTransform());
+
+        // Draw the tile map layers if a map is loaded
+        if (tiledMap != null)
+            renderMapLayers(graphics2D);
+
+        // Draw all game objects
+        renderGameObjects(graphics2D);
     }
 
-    public void handleInput(float moveSpeed, float zoomSpeed, boolean moveLeft, boolean moveRight, boolean moveUp, boolean moveDown, boolean zoomIn, boolean zoomOut)
+    /**
+     * Renders all layers of the currently loaded TiledMap.
+     *
+     * @param graphics2D The Graphics2D context to draw onto.
+     */
+    private void renderMapLayers(Graphics2D graphics2D)
     {
-        cameraManager.handleInput(
-                moveSpeed, zoomSpeed,
-                moveLeft, moveRight,
-                moveUp, moveDown,
-                zoomIn, zoomOut);
-    }
-
-    public void render(Graphics2D graphics)
-    {
-        this.graphics = graphics;
-
-        cameraManager.update(1.0f); // Assuming deltaTime = 1.0f
-        applyCameraTransformation();
-
-        renderMapLayers();
-        renderGameObjects();
-
-        if (debugMode)
+        for (TiledLayer tiledLayer : tiledMap.getLayers())
         {
-            renderDebugOverlay();
-        }
-    }
-
-    private void applyCameraTransformation()
-    {
-        graphics.translate(-cameraManager.getCamera().getX(),
-                -cameraManager.getCamera().getY());
-        graphics.scale(cameraManager.getCamera().getZoom(),
-                cameraManager.getCamera().getZoom());
-    }
-
-    private void renderMapLayers()
-    {
-        if (tiledMap == null) return;
-
-        for (TiledLayer layer : tiledMap.getLayers())
-        {
-            renderLayer(layer); // Don't filter by name
-        }
-    }
-
-    private void renderLayer(TiledLayer layer)
-    {
-        int tileWidth = tiledMap.getTileWidth();
-        int tileHeight = tiledMap.getTileHeight();
-
-        for (int y = 0; y < layer.height(); y++)
-        {
-            for (int x = 0; x < layer.width(); x++)
+            for (int y = 0; y < tiledLayer.height(); y++)
             {
-                long tileID = layer.tileData()[y][x];
-                if (tileID == 0) continue;
-
-                TiledTileset tileset = getTilesetForTile(tileID);
-                if (tileset != null)
+                for (int x = 0; x < tiledLayer.width(); x++)
                 {
-                    int localID = (int) (tileID - tileset.firstGID());
-                    Image tilesetImage = tileset.getImage();
+                    long gid = tiledLayer.tileData()[y][x];
+                    if (gid == 0) continue; // No tile here
 
-                    if (tilesetImage != null)
-                    {
-                        int tilesetWidth = tilesetImage.getWidth(null);
-                        int tilesPerRow = tilesetWidth / tileWidth;
+                    TiledTileset ts = getTilesetForTile(gid);
+                    if (ts == null) continue;
 
-                        int srcX = (localID % tilesPerRow) * tileWidth;
-                        int srcY = (localID / tilesPerRow) * tileHeight;
+                    int localId = (int)(gid - ts.firstGID());
+                    Image img = ts.getImage();
+                    if (img == null) continue;
 
-                        graphics.drawImage(
-                                tilesetImage,
-                                x * tileWidth, y * tileHeight,
-                                x * tileWidth + tileWidth, y * tileHeight + tileHeight,
-                                srcX, srcY,
-                                srcX + tileWidth, srcY + tileHeight,
-                                null
-                        );
-                    }
-                    else
-                    {
-                        graphics.setColor(Color.RED);
-                        graphics.fillRect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-                    }
+                    int sheetW = img.getWidth(null);
+                    int tilesPerRow = sheetW / tiledMap.getTileWidth();
+
+                    int sx = (localId % tilesPerRow) * tiledMap.getTileWidth();
+                    int sy = (localId / tilesPerRow) * tiledMap.getTileHeight();
+
+                    // Calculate screen pixel position (applying camera offset)
+                    int pixelX = Math.round((x - camera.getX()) * pixelsPerUnit);
+                    int pixelY = Math.round((y - camera.getY()) * pixelsPerUnit);
+
+                    // Draw one tile from the tileset
+                    graphics2D.drawImage(
+                            img,
+                            pixelX, pixelY,
+                            pixelX + pixelsPerUnit, pixelY + pixelsPerUnit,
+                            sx, sy,
+                            sx + tiledMap.getTileWidth(), sy + tiledMap.getTileHeight(),
+                            null
+                    );
                 }
             }
         }
     }
 
-    private TiledTileset getTilesetForTile(long tileID)
+    /**
+     * Finds the correct tileset for a given global tile ID (gid).
+     *
+     * @param gid The global tile ID.
+     * @return The TiledTileset that contains this tile, or null if not found.
+     */
+    private TiledTileset getTilesetForTile(long gid)
     {
-        for (TiledTileset tileset : tiledMap.getTilesets())
+        TiledTileset best = null;
+
+        // Search through all tilesets, find the highest firstGID that is <= gid
+        for (TiledTileset ts : tiledMap.getTilesets())
         {
-            if (tileID >= tileset.firstGID()) return tileset;
+            if (gid >= ts.firstGID()) best = ts;
         }
-        return null;
+
+        return best;
     }
 
-    private void renderGameObjects()
+    /**
+     * Renders all GameObjects relative to the camera position.
+     *
+     * @param graphics2D The Graphics2D context to draw onto.
+     */
+    private void renderGameObjects(Graphics2D graphics2D)
     {
-        for (GameObject gameObject : gameObjects)
+        for (GameObject obj : gameObjects)
         {
-            gameObject.draw(this.graphics);
+            // Convert world position into screen pixel coordinates
+            int px = Math.round((float)(obj.getCoordinateX() - camera.getX()) * pixelsPerUnit);
+            int py = Math.round((float)(obj.getCoordinateY() - camera.getY()) * pixelsPerUnit);
+
+            // Let the GameObject draw itself
+            obj.drawAtPixel(graphics2D, px, py, pixelsPerUnit);
         }
-    }
-
-    private void renderDebugOverlay()
-    {
-        this.graphics.setColor(Color.WHITE);
-        this.graphics.drawString("FPS: " + 60, 10, 10);
-    }
-
-    public void setTiledMap(TiledMap tiledMap)
-    {
-        this.tiledMap = tiledMap;
-        System.out.println("TiledMap changed to: " + tiledMap);
     }
 }

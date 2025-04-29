@@ -1,163 +1,287 @@
 package misa.entities;
 
+import misa.core.events.EventManager;
+import misa.core.events.gameplay.entity.EntityDestroyEvent;
+import misa.core.events.gameplay.entity.EntitySpawnEvent;
 import misa.core.events.gameplay.tiled.TileEnterEvent;
 import misa.core.events.gameplay.tiled.TileExitEvent;
-import misa.core.events.gameplay.entity.EntitySpawnEvent;
-import misa.core.events.gameplay.entity.EntityDestroyEvent;
-import misa.core.events.EventManager;
-
-import misa.systems.animation.Animator;
 import misa.systems.animation.AnimationLoader;
+import misa.systems.animation.Animator;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * This class is made to be extended by specific game entities like players, enemies, NPCs, etc.
- * It has basic position, rendering properties, and supports Lua scripting for dynamic behaviors.
+ * Base class for any entity that exists in the world.
+ * <p>
+ * Handles:
+ * - Position (coordinateX, coordinateY)
+ * - Animation (via Animator and loaded frames)
+ * - Event system integration (spawn, destroy, tile enter/exit)
+ * <p>
+ * Extend this class to create game-specific objects.
  */
 @SuppressWarnings("unused")
 public abstract class GameObject
 {
     private static final Logger LOGGER = Logger.getLogger(GameObject.class.getName());
 
-    protected double coordinateX, coordinateY; // coordinates
+    // World position (in units)
+    public double coordinateX;
+    public double coordinateY;
 
-    protected BufferedImage[] animationFrames; // Array of animation frames
-    protected Animator animator; // Current frame index
+    // Event system
     protected static EventManager eventManager;
 
+    // Animation system
+    protected Map<String, BufferedImage[]> namedAnimations = new HashMap<>();
+    protected BufferedImage[] currentAnimationFrames;
+    protected Animator animator = new Animator();
     protected boolean shouldAnimate;
     protected boolean shouldLoop;
 
     /**
-     * Constructor for GameObject
+     * Creates a new GameObject.
      *
-     * @param coordinateX             x coordinate
-     * @param coordinateY             y coordinate
-     * @param shouldAnimate           boolean for whether it should animate or not
-     * @param shouldLoop              boolean for whether it should loop or not
+     * @param coordinateX Starting X position (units)
+     * @param coordinateY Starting Y position (units)
+     * @param shouldAnimate Whether the object should animate
+     * @param shouldLoop Whether the animation should loop
+     * @param initialFrames Initial animation frames (can be null)
      */
-    public GameObject(double coordinateX, double coordinateY,
-                      boolean shouldAnimate, boolean shouldLoop,
-                      BufferedImage[] animationFrames)
+    public GameObject(
+            double coordinateX,
+            double coordinateY,
+            boolean shouldAnimate,
+            boolean shouldLoop,
+            BufferedImage[] initialFrames
+    )
     {
         this.coordinateX = coordinateX;
         this.coordinateY = coordinateY;
         this.shouldAnimate = shouldAnimate;
         this.shouldLoop = shouldLoop;
-        this.animator = new Animator();
-        this.animationFrames = animationFrames;
-        eventManager.triggerEvent(new EntitySpawnEvent(this));
+        this.currentAnimationFrames = initialFrames;
+
+        if (eventManager != null)
+        {
+            eventManager.triggerEvent(new EntitySpawnEvent(this));
+        }
     }
 
     /**
-     * Loads animation frames from file paths.
+     * Sets named animations for this GameObject.
      *
-     * @param paths Array of file paths for animation frames.
-     * @return return the animation arrays.
+     * @param animations Map of animation names to frame arrays.
+     */
+    public void setNamedAnimations(Map<String, BufferedImage[]> animations)
+    {
+        this.namedAnimations = animations;
+    }
+
+    /**
+     * Switches the current animation to a named animation.
+     *
+     * @param animationName Name of the animation to play.
+     */
+    public void playAnimation(String animationName)
+    {
+        if (namedAnimations.containsKey(animationName))
+        {
+            currentAnimationFrames = namedAnimations.get(animationName);
+        }
+        else
+        {
+            LOGGER.warning("Animation not found: " + animationName);
+        }
+    }
+
+    /**
+     * Utility function to load animation frames from resource paths.
+     *
+     * @param paths Array of resource paths to frame images.
+     * @return Array of loaded BufferedImages.
      */
     public BufferedImage[] loadAnimations(String[] paths)
     {
         return AnimationLoader.loadAnimations(paths);
     }
 
-
-
     /**
-     * Animates the GameObject using the loaded frames.
+     * Draws the GameObject applying a camera/world offset.
      *
-     * @param graphics Graphics2D context for rendering.
-     * @param shouldLoop Whether the animation should loop.
+     * @param graphics2D Graphics2D context.
+     * @param offsetX Horizontal camera offset.
+     * @param offsetY Vertical camera offset.
      */
-    public void animate(BufferedImage[] animationFrames, Graphics2D graphics, boolean shouldLoop)
+    public void drawTranslated(Graphics2D graphics2D, float offsetX, float offsetY)
     {
-        if (animationFrames != null)
+        if (shouldAnimate && currentAnimationFrames != null)
         {
-            animator.animate(animationFrames, shouldLoop, this, graphics);
+            animator.animate(
+                    currentAnimationFrames,
+                    shouldLoop,
+                    this,
+                    graphics2D,
+                    offsetX,
+                    offsetY
+            );
         }
         else
         {
-            LOGGER.warning("No animation frames loaded for GameObject");
+            graphics2D.setColor(Color.RED);
+            graphics2D.fillRect(
+                    (int)(coordinateX + offsetX),
+                    (int)(coordinateY + offsetY),
+                    1, 1
+            );
         }
     }
 
     /**
-     * Draws the GameObject on the screen
-     *
-     * @param graphics the graphics used for drawing
-     */
-    public void draw(Graphics graphics)
-    {
-        if (graphics instanceof Graphics2D graphics2D)
-        {
-            if (shouldAnimate)
-            {
-                animate(animationFrames, graphics2D, shouldLoop);
-            }
-            else
-            {
-                LOGGER.warning("Shouldn't animate. Add in static art capability Case, seriously.......!!!!!");
-                LOGGER.warning("Static fallback — drawing rectangle.");
-                graphics.setColor(Color.RED);
-                graphics.fillRect((int) coordinateX, (int) coordinateY, 72, 72);
-            }
-        }
-        else
-        {
-            LOGGER.warning("Graphics instance is not Graphics2D.");
-        }
-    }
-
-    /**
-     * Destroys the GameObject and triggers an event.
+     * Triggers a destruction event for this GameObject.
      */
     public void destroy()
     {
-        eventManager.triggerEvent(new EntityDestroyEvent(this));
+        if (eventManager != null)
+        {
+            eventManager.triggerEvent(new EntityDestroyEvent(this));
+        }
     }
 
+    /**
+     * Notifies that this GameObject has entered a tile.
+     *
+     * @param tileX Tile X coordinate.
+     * @param tileY Tile Y coordinate.
+     */
     public void enterTile(int tileX, int tileY)
     {
-        eventManager.triggerEvent(new TileEnterEvent(tileX, tileY));
+        if (eventManager != null)
+        {
+            eventManager.triggerEvent(new TileEnterEvent(tileX, tileY));
+        }
     }
 
+    /**
+     * Notifies that this GameObject has exited a tile.
+     *
+     * @param tileX Tile X coordinate.
+     * @param tileY Tile Y coordinate.
+     */
     public void exitTile(int tileX, int tileY)
     {
-        eventManager.triggerEvent(new TileExitEvent(tileX, tileY));
+        if (eventManager != null)
+        {
+            eventManager.triggerEvent(new TileExitEvent(tileX, tileY));
+        }
     }
 
+    // ----------- Position Getters/Setters -----------
 
+    /**
+     * @return The GameObject's X coordinate (units).
+     */
+    public double getCoordinateX()
+    {
+        return coordinateX;
+    }
 
+    /**
+     * @return The GameObject's Y coordinate (units).
+     */
+    public double getCoordinateY()
+    {
+        return coordinateY;
+    }
 
-    // Getters and setters for position
-    public double getCoordinateX() { return coordinateX; }
-    public double getCoordinateY() { return coordinateY; }
-
+    /**
+     * Sets the GameObject's position.
+     *
+     * @param coordinateX New X coordinate (units).
+     * @param coordinateY New Y coordinate (units).
+     */
     public void setPosition(double coordinateX, double coordinateY)
     {
         this.coordinateX = coordinateX;
         this.coordinateY = coordinateY;
     }
 
+    // ----------- Event Manager Setter -----------
+
     /**
-     * Static method to set the EventManager.
+     * Sets the global EventManager for all GameObjects.
      *
-     * @param manager the EventManager to set
+     * @param manager The EventManager instance.
      */
     public static void setEventManager(EventManager manager)
     {
         eventManager = manager;
     }
 
-    public void setShouldAnimate(boolean value) { this.shouldAnimate = value; }
-    public void setShouldLoop(boolean value) { this.shouldLoop = value; }
+    // ----------- Animation Controls -----------
 
-    public void setAnimation(BufferedImage[] animationFrames)
+    /**
+     * Enables or disables animation playback.
+     *
+     * @param value True to enable animation; false to disable.
+     */
+    public void setShouldAnimate(boolean value)
     {
-        this.animationFrames = animationFrames;
-        LOGGER.warning("Animation frames set to " + Arrays.toString(animationFrames));
+        this.shouldAnimate = value;
+    }
+
+    /**
+     * Enables or disables animation looping.
+     *
+     * @param value True to loop animation; false to play once.
+     */
+    public void setShouldLoop(boolean value)
+    {
+        this.shouldLoop = value;
+    }
+
+    // ----------- Game Loop Methods -----------
+
+    /**
+     * Per-frame update method.
+     * <p>
+     * Override this method to define GameObject-specific update behavior.
+     */
+    public void update()
+    {
+        // No default behavior
+    }
+
+    /**
+     * Draws the GameObject at a specific pixel location.
+     *
+     * @param graphics2D Graphics2D context.
+     * @param px Pixel X coordinate.
+     * @param py Pixel Y coordinate.
+     * @param sizeInPixels Size of the rendered object in pixels.
+     */
+    public void drawAtPixel(Graphics2D graphics2D, int px, int py, int sizeInPixels)
+    {
+        if (shouldAnimate && currentAnimationFrames != null)
+        {
+            animator.animateAtPixel(
+                    currentAnimationFrames,
+                    shouldLoop,
+                    this,
+                    graphics2D,
+                    px,
+                    py,
+                    sizeInPixels
+            );
+        }
+        else
+        {
+            graphics2D.setColor(Color.RED);
+            graphics2D.fillRect(px, py, sizeInPixels, sizeInPixels);
+        }
     }
 }

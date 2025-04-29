@@ -7,29 +7,41 @@ import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
 
 /**
- * Handles the playback of animations by sequencing through frames of
- * BufferedImage arrays and applying them to game objects.
- * Supports Lua scripting for controlling animations.
- * Integrates with Graphics2D rendering loop for rendering animations.
+ * Animator handles frame-based animation for GameObjects.
+ *
+ * <p>
+ * Provides two main rendering modes:
+ * - Unit-space drawing (scaled 1x1 unit)
+ * - Pixel-space drawing (for manual pixel positioning)
+ * </p>
  */
 @SuppressWarnings("unused")
 public class Animator
 {
     private static final Logger LOGGER = Logger.getLogger(Animator.class.getName());
 
-    private int currentFrame = 0;     // The current frame index being displayed
-    private long lastFrameTime = 0;   // Timestamp of the last frame update
-    private long frameDuration = 200; // Default duration for each frame in milliseconds
+    private int currentFrame = 0;
+    private long lastFrameTime = 0;
+    private long frameDuration = 200; // Frame duration in milliseconds
 
     /**
-     * Animates the specified GameObject using the given frames.
+     * Animates a GameObject by rendering its current frame with camera offset.
      *
-     * @param animationFrames An array of BufferedImages representing animation frames.
-     * @param shouldLoop      A flag indicating whether the animation should loop.
-     * @param gameObject      The GameObject to which the animation will be applied.
-     * @param graphics        The Graphics2D context for rendering.
+     * @param animationFrames Array of animation frames.
+     * @param shouldLoop Whether animation should loop.
+     * @param gameObject The GameObject being animated.
+     * @param graphics2D The Graphics2D context.
+     * @param offsetX World/camera X offset.
+     * @param offsetY World/camera Y offset.
      */
-    public void animate(BufferedImage[] animationFrames, boolean shouldLoop, GameObject gameObject, Graphics2D graphics)
+    public void animate(
+            BufferedImage[] animationFrames,
+            boolean shouldLoop,
+            GameObject gameObject,
+            Graphics2D graphics2D,
+            float offsetX,
+            float offsetY
+    )
     {
         if (animationFrames == null || animationFrames.length == 0)
         {
@@ -44,14 +56,14 @@ public class Animator
             lastFrameTime = currentTime;
         }
 
-        renderCurrentFrame(animationFrames, gameObject, graphics);
+        renderCurrentFrame(animationFrames, gameObject, graphics2D, offsetX, offsetY);
     }
 
     /**
-     * Determines whether the frame should be updated based on elapsed time.
+     * Determines if it's time to advance to the next frame.
      *
-     * @param currentTime The current timestamp in nanoseconds.
-     * @return True if enough time has passed to update the frame, otherwise false.
+     * @param currentTime Current time in nanoseconds.
+     * @return True if enough time has passed since last frame.
      */
     private boolean shouldUpdateFrame(long currentTime)
     {
@@ -60,10 +72,10 @@ public class Animator
     }
 
     /**
-     * Updates the current frame index, restarting the animation if looping is enabled.
+     * Advances to the next frame, respecting looping settings.
      *
-     * @param animationFrames The array of animation frames.
-     * @param shouldLoop      A flag indicating whether the animation should loop.
+     * @param animationFrames Array of animation frames.
+     * @param shouldLoop Whether to loop or stop at last frame.
      */
     private void updateCurrentFrame(BufferedImage[] animationFrames, boolean shouldLoop)
     {
@@ -72,40 +84,105 @@ public class Animator
         {
             if (shouldLoop)
             {
-                LOGGER.info("Animation looped successfully.");
                 currentFrame = 0;
             }
             else
             {
-                LOGGER.info("Animation completed.");
-                currentFrame = animationFrames.length - 1; // Stay on the last frame
+                currentFrame = animationFrames.length - 1;
             }
         }
     }
 
     /**
-     * Renders the current animation frame to the Graphics2D context.
+     * Renders the current frame of the animation at unit-space position.
      *
-     * @param animationFrames The array of animation frames.
-     * @param gameObject      The GameObject to render.
-     * @param graphics        The Graphics2D context for rendering.
+     * @param animationFrames Array of animation frames.
+     * @param gameObject The GameObject.
+     * @param graphics2D The Graphics2D context.
+     * @param offsetX X offset for world or camera.
+     * @param offsetY Y offset for world or camera.
      */
-    private void renderCurrentFrame(BufferedImage[] animationFrames, GameObject gameObject, Graphics2D graphics)
+    private void renderCurrentFrame(
+            BufferedImage[] animationFrames,
+            GameObject gameObject,
+            Graphics2D graphics2D,
+            float offsetX,
+            float offsetY
+    )
     {
         BufferedImage currentFrameImage = animationFrames[currentFrame];
-        graphics.drawImage(currentFrameImage, (int) gameObject.getCoordinateX(), (int) gameObject.getCoordinateY(), null);
+
+        graphics2D.drawImage(
+                currentFrameImage,
+                (int)(gameObject.getCoordinateX() + offsetX),
+                (int)(gameObject.getCoordinateY() + offsetY),
+                (int)(gameObject.getCoordinateX() + offsetX + 1),
+                (int)(gameObject.getCoordinateY() + offsetY + 1),
+                0, 0,
+                currentFrameImage.getWidth(),
+                currentFrameImage.getHeight(),
+                null
+        );
     }
 
     /**
-     * Sets the duration for each frame in the animation.
+     * Animates the GameObject directly at a pixel position.
      *
-     * @param duration The duration in milliseconds. Must be greater than 0.
+     * @param animationFrames Array of animation frames.
+     * @param shouldLoop Whether animation should loop.
+     * @param gameObject The GameObject being animated.
+     * @param graphics The Graphics2D context.
+     * @param pixelX Pixel X position to draw at.
+     * @param pixelY Pixel Y position to draw at.
+     * @param sizeInPixels Width/height of the sprite to draw.
+     */
+    public void animateAtPixel(
+            BufferedImage[] animationFrames,
+            boolean shouldLoop,
+            GameObject gameObject,
+            Graphics2D graphics,
+            int pixelX,
+            int pixelY,
+            int sizeInPixels
+    )
+    {
+        if (animationFrames == null || animationFrames.length == 0)
+        {
+            LOGGER.warning("Animation frames are empty or null. Animation skipped.");
+            return;
+        }
+
+        long currentTime = System.nanoTime();
+        if (shouldUpdateFrame(currentTime))
+        {
+            updateCurrentFrame(animationFrames, shouldLoop);
+            lastFrameTime = currentTime;
+        }
+
+        BufferedImage currentFrameImage = animationFrames[currentFrame];
+
+        graphics.drawImage(
+                currentFrameImage,
+                pixelX, pixelY,
+                pixelX + sizeInPixels,
+                pixelY + sizeInPixels,
+                0, 0,
+                currentFrameImage.getWidth(),
+                currentFrameImage.getHeight(),
+                null
+        );
+    }
+
+    /**
+     * Sets the frame duration (speed of animation).
+     *
+     * @param duration Frame duration in milliseconds.
      */
     public void setFrameDuration(long duration)
     {
         if (duration <= 0)
         {
-            LOGGER.warning("Invalid frame duration. Resetting to default value of 200ms.");
+            LOGGER.warning("Invalid frame duration. Resetting to default 200ms.");
             this.frameDuration = 200;
         }
         else

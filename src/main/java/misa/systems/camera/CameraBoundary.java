@@ -1,61 +1,116 @@
 package misa.systems.camera;
 
 /**
- * The CameraBoundary class is responsible for enforcing movement restrictions on the camera.
- * It ensures that the camera stays within specified boundaries by clamping its position.
- * This helps to prevent the camera from moving outside the desired area, which could be useful
- * for situations like limiting the view to within the bounds of a map or environment.
+ * CameraBoundary restricts the Camera so it cannot move outside a defined world area (in world units).
+ *
+ * <p>
+ * Useful for keeping the camera locked to a map or world bounds.
+ * Boundaries can be dynamically updated if the map size changes.
+ * </p>
  */
 @SuppressWarnings("unused")
 public class CameraBoundary
 {
-    // The minimum and maximum x and y values to define the boundaries of the camera's movement
-    private final float minX, minY, maxX, maxY;
+    private final float minX;
+    private final float minY;
+    private float maxX;
+    private float maxY;
+    private final float originalMinX;
+    private final float originalMinY;
 
     /**
-     * Constructor to initialize the CameraBoundary with specific boundary values.
+     * Creates a new CameraBoundary.
      *
-     * @param minX The minimum x-coordinate boundary (left boundary)
-     * @param minY The minimum y-coordinate boundary (top boundary)
-     * @param maxX The maximum x-coordinate boundary (right boundary)
-     * @param maxY The maximum y-coordinate boundary (bottom boundary)
+     * @param minX Minimum world X coordinate.
+     * @param minY Minimum world Y coordinate.
+     * @param maxX Maximum world X coordinate.
+     * @param maxY Maximum world Y coordinate.
      */
     public CameraBoundary(float minX, float minY, float maxX, float maxY)
     {
-        this.minX = minX;  // Set the left boundary of the camera
-        this.minY = minY;  // Set the top boundary of the camera
-        this.maxX = maxX;  // Set the right boundary of the camera
-        this.maxY = maxY;  // Set the bottom boundary of the camera
+        this.minX = minX;
+        this.minY = minY;
+        this.maxX = maxX;
+        this.maxY = maxY;
+
+        // Save original bounds in case they need adjustment later
+        this.originalMinX = minX;
+        this.originalMinY = minY;
     }
 
     /**
-     * Enforces the movement boundaries for the given camera. The camera's position is clamped
-     * to ensure it does not exceed the specified minimum and maximum boundaries.
+     * Enforces that the Camera stays within the boundary.
      *
-     * @param camera The Camera object whose position will be clamped to the boundaries
+     * @param camera The camera to restrict.
      */
     public void enforceBounds(Camera camera)
     {
-        // Clamp the camera's x and y position to the defined boundaries (minX, minY, maxX, maxY)
-        camera.setTargetPosition(
-                clamp(camera.getX(), minX, maxX),  // Ensure the camera's x position is within bounds
-                clamp(camera.getY(), minY, maxY)   // Ensure the camera's y position is within bounds
+        camera.setPosition(
+                clamp(camera.getX(), minX, maxX - camera.getViewportUnitsWidth()),
+                clamp(camera.getY(), minY, maxY - camera.getViewportUnitsHeight())
         );
     }
 
     /**
-     * Clamps a value to be within the specified minimum and maximum range.
-     * If the value is less than the minimum, it returns the minimum. If the value is greater
-     * than the maximum, it returns the maximum. Otherwise, it returns the value itself.
+     * Updates the maximum boundary values based on new world size.
      *
-     * @param value The value to be clamped
-     * @param min The minimum allowed value
-     * @param max The maximum allowed value
-     * @return The clamped value, ensuring it is between min and max
+     * @param worldUnitsWidth New width of the world in units.
+     * @param worldUnitsHeight New height of the world in units.
+     */
+    public void update(float worldUnitsWidth, float worldUnitsHeight)
+    {
+        // Adjust max bounds based on new world size
+        float adjustedMaxX = originalMinX + worldUnitsWidth;
+        float adjustedMaxY = originalMinY + worldUnitsHeight;
+
+        this.maxX = Math.max(originalMinX, adjustedMaxX);
+        this.maxY = Math.max(originalMinY, adjustedMaxY);
+    }
+
+    /**
+     * Clamps a value between a minimum and maximum.
+     *
+     * @param value The value to clamp.
+     * @param min Minimum allowed value.
+     * @param max Maximum allowed value.
+     * @return The clamped value.
      */
     private float clamp(float value, float min, float max)
     {
-        // Return the value, ensuring it is within the min and max bounds
         return Math.max(min, Math.min(value, max));
+    }
+
+    // --- Getters ---
+
+    /**
+     * @return Minimum X world coordinate.
+     */
+    public float getMinX()
+    {
+        return minX;
+    }
+
+    /**
+     * @return Minimum Y world coordinate.
+     */
+    public float getMinY()
+    {
+        return minY;
+    }
+
+    /**
+     * @return Maximum X world coordinate.
+     */
+    public float getMaxX()
+    {
+        return maxX;
+    }
+
+    /**
+     * @return Maximum Y world coordinate.
+     */
+    public float getMaxY()
+    {
+        return maxY;
     }
 }

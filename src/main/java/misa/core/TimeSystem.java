@@ -3,23 +3,28 @@ package misa.core;
 import misa.core.events.EventManager;
 
 /**
- * Represents a time system for a game, allowing the simulation of in-game time progression,
- * pausing, resetting, and triggering Lua-based events based on time changes.
+ * TimeSystem handles the simulation of in-game time progression,
+ * including pausing, resetting, and checking time-based triggers.
  * <p>
- * This class integrates with Lua scripting to provide customizable event-driven
- * behavior for time-based mechanics in games.
+ * It is designed to be flexible for RPGs, simulations, and games
+ * needing a consistent day/night cycle or timed events.
  */
 @SuppressWarnings("unused")
 public class TimeSystem
 {
-    private int hours, minutes, seconds, days;     // In-game time units
-    private final float progressionRate;           // Real-time to in-game time conversion rate
-    private boolean isPaused;                      // Whether the time progression is paused
+    // In-game time units
+    private int hours, minutes, seconds, days;
+
+    // Conversion rate: how fast in-game time passes relative to real time
+    private final float progressionRate;
+
+    // Whether time progression is currently paused
+    private boolean isPaused;
 
     /**
      * Constructs a new TimeSystem instance.
      *
-     * @param rate           The progression rate: real-time seconds per in-game second.
+     * @param rate Progression rate: how many real-world seconds = 1 in-game second.
      */
     public TimeSystem(float rate, EventManager eventManager)
     {
@@ -29,24 +34,24 @@ public class TimeSystem
         this.days = 0;
         this.progressionRate = rate;
         this.isPaused = false;
-        // Reference to the EventManager
+
+        // (Future integration: EventManager could be used to trigger Lua or gameplay events)
     }
 
     /**
      * Updates the in-game time based on the real-time delta and progression rate.
-     * Triggers the "onHourChange" Lua event whenever the hour changes.
      *
-     * @param realTimeDelta The amount of real-world time (in seconds) that has elapsed.
+     * @param realTimeDelta The amount of real-world time (in seconds) that has elapsed since the last update.
      */
     public void update(float realTimeDelta)
     {
         if (isPaused) return;
 
-        // Calculate in-game time progression
+        // Calculate how much in-game time has passed
         float inGameTimeDelta = realTimeDelta * progressionRate;
         seconds += (int) inGameTimeDelta;
 
-        // Handle overflow from seconds to minutes, and so on
+        // Handle overflow from seconds → minutes → hours → days
         minutes += seconds / 60;
         seconds %= 60;
 
@@ -58,8 +63,7 @@ public class TimeSystem
     }
 
     /**
-     * Sets the in-game time to the specified hour, minute, and second.
-     * Validates the input and triggers the "onTimeSet" Lua event.
+     * Sets the current in-game time to the specified hour, minute, and second.
      *
      * @param h The hour to set (0-23).
      * @param m The minute to set (0-59).
@@ -81,7 +85,7 @@ public class TimeSystem
     /**
      * Gets the current in-game time as a formatted string (HH:MM:SS).
      *
-     * @return A string representation of the current in-game time.
+     * @return The current in-game time as a string.
      */
     public String getCurrentTime()
     {
@@ -89,9 +93,9 @@ public class TimeSystem
     }
 
     /**
-     * Sets the pause state of the time system.
+     * Pauses or resumes time progression.
      *
-     * @param paused True to pause time progression, false to resume.
+     * @param paused True to pause time progression, false to resume it.
      */
     public void setPaused(boolean paused)
     {
@@ -99,9 +103,9 @@ public class TimeSystem
     }
 
     /**
-     * Checks whether the time system is currently paused.
+     * Checks whether the time progression is currently paused.
      *
-     * @return True if time progression is paused, false otherwise.
+     * @return True if paused, false otherwise.
      */
     public boolean isPaused()
     {
@@ -110,7 +114,7 @@ public class TimeSystem
 
     /**
      * Resets the in-game time to 00:00:00 and clears the day count.
-     * Unpauses the system and triggers the "onReset" Lua event.
+     * Also unpauses the system.
      */
     public void reset()
     {
@@ -122,14 +126,18 @@ public class TimeSystem
     }
 
     /**
-     * Allows registration of a custom callback for when a specific hour is reached.
-     * This method checks if the current hour matches the target hour and executes the callback if true.
+     * Triggers a callback when the current in-game hour matches a specified target hour.
+     * <p>
+     * (This check must be manually called by the user during update cycles.)
      *
      * @param targetHour The hour to monitor (0-23).
-     * @param callback   The callback to execute when the target hour is reached.
+     * @param callback   The code to run when the target hour is reached.
      */
     public void onTimeChange(int targetHour, Runnable callback)
     {
-        if (hours == targetHour) callback.run();
+        if (hours == targetHour)
+        {
+            callback.run();
+        }
     }
 }
