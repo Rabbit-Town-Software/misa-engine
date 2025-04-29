@@ -24,15 +24,15 @@ The engine is **usable** for very basic testing and demo purposes, but **many ad
 
 ## **Features Implemented**
 
-- ✅ **Global Time System** – In-game clock and event timing
-- ✅ **Camera System** – Smooth following and boundary clamping
-- ✅ **Tiled2Misa Map Loader** – Parse and render `.tmx` maps (CSV & Base64)
-- ✅ **Event System** – Entity spawn/destruction, tile enter/exit, time change
-- ✅ **Animation System** – Sprite animation with optional looping
-- ✅ **Game Loop Architecture** – Fixed UPS/FPS handling
-- ✅ **Configuration System** – Editable config file generation
-- ✅ **Rendering System** – Pixel-perfect tile and sprite rendering
-- ✅ **Input Handling** – Simple keyboard input tracking
+- **Global Time System** – In-game clock and event timing
+- **Camera System** – Smooth following and boundary clamping
+- **Tiled2Misa Map Loader** – Parse and render `.tmx` maps (CSV & Base64)
+- **Event System** – Entity spawn/destruction, tile enter/exit, time change
+- **Animation System** – Sprite animation with optional looping
+- **Game Loop Architecture** – Fixed UPS/FPS handling
+- **Configuration System** – Editable config file generation
+- **Rendering System** – Pixel-perfect tile and sprite rendering
+- **Input Handling** – Simple keyboard input tracking
 
 ---
 
