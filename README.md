@@ -1,36 +1,42 @@
-# Misa Engine
+<h1 align="center">Misa Engine</h1>
+<p align="center"><em>A lightweight, open-source 2D RPG engine for Java developers</em></p>
 
-![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![Build Status](https://img.shields.io/badge/build-alpha-lightgrey.svg)
-![Version](https://img.shields.io/badge/version-0.1.1--alpha-blue)
-![Last Commit](https://img.shields.io/github/last-commit/rabbit-town-software/misa-engine)
-![Code Size](https://img.shields.io/github/languages/code-size/rabbit-town-software/misa-engine)
-![Top Language](https://img.shields.io/github/languages/top/rabbit-town-software/misa-engine)
-![Contributors](https://img.shields.io/github/contributors/rabbit-town-software/misa-engine)
-
-A lightweight, open-source Java game engine for classic turn-based, pixel-art RPGs.
-
----
-
-## About Misa Engine
-
-**Misa Engine** is a free and open-source game engine built in **Java** for developing classic-style 2D **turn-based RPGs**. Inspired by titles like early Final Fantasy games, it provides a clean and minimal structure for developers who want full control over their game’s systems without the weight of a full general-purpose engine.
-
-Built for **pixel-perfect rendering**, tilemaps, and **modular systems**, Misa Engine helps you focus on game design instead of reinventing the low-level foundation.
+<p align="center">
+  <img src="https://img.shields.io/badge/License-GPLv3-blue.svg">
+  <img src="https://img.shields.io/badge/build-alpha-lightgrey.svg">
+  <img src="https://img.shields.io/badge/version-0.1.1--alpha-blue">
+  <img src="https://img.shields.io/github/last-commit/rabbit-town-software/misa-engine">
+  <img src="https://img.shields.io/github/languages/code-size/rabbit-town-software/misa-engine">
+  <img src="https://img.shields.io/github/languages/top/rabbit-town-software/misa-engine">
+  <img src="https://img.shields.io/github/contributors/rabbit-town-software/misa-engine">
+</p>
 
 ---
 
-## Current Status
+## 📚 Table of Contents
+
+- [🔧 Current Status](#-current-status)
+- [🚀 Features](#-features)
+- [🗺️ Roadmap](#️-roadmap)
+- [⚙️ Getting Started](#️-getting-started)
+- [🔒 Privacy & License](#-privacy--license)
+- [🤝 Contributing](#-contributing)
+- [📬 Contact](#-contact)
+- [🐇 Rabbit Town Software](#-rabbit-town-software)
+
+---
+
+## 🔧 Current Status
 
 - **Version:** `0.1.1-alpha`  
 - **Stage:** *Physics Update (in progress)*  
 - **Stability:** Early Alpha – Expect bugs and breaking changes
 
-The engine is **playable** for basic demos and sandbox development, but key systems like **physics, combat, and UI** are still being built out.
+The engine is usable for basic demos and sandbox development, but key systems like **physics, combat, and UI** are still being built out.
 
 ---
 
-## Features
+## 🚀 Features
 
 - Pixel-perfect 2D rendering system  
 - Modular animation and timing system  
@@ -43,21 +49,21 @@ The engine is **playable** for basic demos and sandbox development, but key syst
 
 ---
 
-## Roadmap
+## 🗺️ Roadmap
 
-### ✅ **Core Systems (Complete)**  
+### ✅ Core Systems (Complete)  
 - [x] Global time & update loop  
 - [x] Camera & renderer  
 - [x] Animation & events  
 - [x] Map loading (.tmx)  
 - [x] Basic input support  
 
-### 🔧 **Current Update: Physics System**  
+### 🔧 Current Update: Physics System  
 - [ ] Collision detection  
 - [ ] Movement resolution  
 - [ ] Physics-based map objects  
 
-### 🔮 **Upcoming Features**
+### 🔮 Upcoming Features
 
 #### Lighting & NPCs  
 - [ ] Static/dynamic lighting  
@@ -88,7 +94,7 @@ The engine is **playable** for basic demos and sandbox development, but key syst
 
 ---
 
-## Getting Started
+## ⚙️ Getting Started
 
 ### Manual `.jar` Installation
 
@@ -117,7 +123,7 @@ dependencies {
 
 ---
 
-## Privacy & License
+## 🔒 Privacy & License
 
 ### Privacy Policy
 
@@ -129,13 +135,14 @@ We believe software should work without surveillance.
 
 Misa Engine is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
 
--✔️ Commercial use allowed  
-- ✔️ Modifications & redistribution permitted  
+- ✔️ Commercial use allowed  
+- ✔️ Modifications allowed  
+- ✔️ Distribution allowed  
 - ❗ Derivative works must also be GPL-3.0 licensed  
 
 ---
 
-## Want to Contribute?
+## 🤝 Contributing
 
 We’re looking for:
 
@@ -147,17 +154,22 @@ Submit an issue, fork the repo, or just reach out.
 
 ---
 
-## Contact
+## 📬 Contact
 
 - Email: [support@rabbittownsoftware.com](mailto:support@rabbittownsoftware.com)  
 - GitHub Issues: For bugs, suggestions, or feature requests
 
 ---
 
-![Rabbit Town Software Logo](https://raw.githubusercontent.com/rabbit-town-software/misa-engine/master/assets/rabbittownlogo.jpg)
+## 🐇 Rabbit Town Software
 
+<br/>
 
 <p align="center">
-  <b>Rabbit Town Software</b> — Open-source. No compromise.
+  <img src="https://github.com/Rabbit-Town-Software/misa-engine/blob/eb3aa63bad02385d2af4b7b130d1bde70e2a2715/assets/rabbittownlogo.jpg?raw=true" alt="Rabbit Town Software Logo" width="180"/>
 </p>
 
+<p align="center">
+  <strong>Rabbit Town Software</strong><br/>
+  Open-source. No compromise.
+</p>
