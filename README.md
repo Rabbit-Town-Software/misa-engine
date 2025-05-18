@@ -1,59 +1,102 @@
-# **Misa Engine**  
-*A lightweight, open-source 2D RPG engine in Java*  
+# Misa Engine
+
+![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)
+![Build Status](https://img.shields.io/badge/build-alpha-lightgrey.svg)
+![Version](https://img.shields.io/badge/version-0.1.1--alpha-blue)
+![Last Commit](https://img.shields.io/github/last-commit/rabbit-town-software/misa-engine)
+![Code Size](https://img.shields.io/github/languages/code-size/rabbit-town-software/misa-engine)
+![Top Language](https://img.shields.io/github/languages/top/rabbit-town-software/misa-engine)
+![Contributors](https://img.shields.io/github/contributors/rabbit-town-software/misa-engine)
+
+A lightweight, open-source Java game engine for classic turn-based, pixel-art RPGs.
 
 ---
 
-## **Overview**  
-The **Misa Engine** is a completely **free and open-source** game engine built in **Java**, designed specifically for **turn-based, pixel-art RPGs**.  
-Inspired by **classic Final Fantasy titles**, it provides all the core systems needed to create rich RPG experiences **without the overhead of a full general-purpose game engine**.
+## About Misa Engine
 
-The goal of the Misa Engine is to make **RPG development faster and easier**, while remaining **lightweight and flexible**, allowing developers to focus more on **game design** instead of building low-level systems from scratch.
+**Misa Engine** is a free and open-source game engine built in **Java** for developing classic-style 2D **turn-based RPGs**. Inspired by titles like early Final Fantasy games, it provides a clean and minimal structure for developers who want full control over their game’s systems without the weight of a full general-purpose engine.
 
-Whether you want to build a **prototype** or a **full game**, Misa Engine aims to get you started quickly.
+Built for **pixel-perfect rendering**, tilemaps, and **modular systems**, Misa Engine helps you focus on game design instead of reinventing the low-level foundation.
 
 ---
 
-## **Current Status**  
-- **Version:** `v0.1.1-alpha`  
-- **Development Stage:** Physics Update 
-- **API Stability:** Early Alpha (breaking changes possible)
+## Current Status
 
-The engine is **usable** for very basic testing and demo purposes, but **many advanced systems are still in development**.
+- **Version:** `0.1.1-alpha`  
+- **Stage:** *Physics Update (in progress)*  
+- **Stability:** Early Alpha – Expect bugs and breaking changes
 
----
-
-## **Features Implemented**
-
-- **Global Time System** – In-game clock and event timing
-- **Camera System** – Smooth following and boundary clamping
-- **Tiled2Misa Map Loader** – Parse and render `.tmx` maps (CSV & Base64)
-- **Event System** – Entity spawn/destruction, tile enter/exit, time change
-- **Animation System** – Sprite animation with optional looping
-- **Game Loop Architecture** – Fixed UPS/FPS handling
-- **Configuration System** – Editable config file generation
-- **Rendering System** – Pixel-perfect tile and sprite rendering
-- **Input Handling** – Simple keyboard input tracking
+The engine is **playable** for basic demos and sandbox development, but key systems like **physics, combat, and UI** are still being built out.
 
 ---
 
-## **How to Use**
+## Features
 
-### 1. Install Misa Engine (Recommended - Manual .jar Download)
-
-- Download the latest `.jar` file (`misa-engine-0.1.1-alpha.jar`) from the [Releases](https://github.com/case-presley/misa-engine/releases) page.
-- In your Java project (IntelliJ, Eclipse, etc.):
-  - Add the jar as a **library** (in IntelliJ: `File > Project Structure > Libraries > +`).
-  - Or manually include it in your project's **classpath**.
-
-You can now import and use Misa Engine classes like `GameLoop`, `GameWindow`, `Renderer`, etc.
+- Pixel-perfect 2D rendering system  
+- Modular animation and timing system  
+- Tilemap support via Tiled `.tmx` parser  
+- Smooth camera with zoom and boundary control  
+- Entity-based event system (spawn, tile triggers, time)  
+- Fixed timestep game loop  
+- Basic keyboard input handling  
+- Config file support and customizable boot setup  
 
 ---
 
-### 2. (Optional) Install via Gradle
+## Roadmap
 
-If you prefer to add it via **Gradle** instead of downloading manually:
+### ✅ **Core Systems (Complete)**  
+- [x] Global time & update loop  
+- [x] Camera & renderer  
+- [x] Animation & events  
+- [x] Map loading (.tmx)  
+- [x] Basic input support  
 
-In your `build.gradle`:
+### 🔧 **Current Update: Physics System**  
+- [ ] Collision detection  
+- [ ] Movement resolution  
+- [ ] Physics-based map objects  
+
+### 🔮 **Upcoming Features**
+
+#### Lighting & NPCs  
+- [ ] Static/dynamic lighting  
+- [ ] Basic AI/NPC scripting  
+
+#### Save & Inventory  
+- [ ] Save/load slots  
+- [ ] Item and inventory handling  
+
+#### UI & Dialogue  
+- [ ] UI overlay system  
+- [ ] Branching dialogue manager  
+
+#### Combat & Visual Effects  
+- [ ] Turn-based combat engine  
+- [ ] Particle system  
+- [ ] Audio (music & SFX)  
+
+#### Scenes & Data  
+- [ ] Scene manager & transitions  
+- [ ] Cutscene scripting  
+- [ ] Database manager for game state  
+
+#### Optimization  
+- [ ] Object pooling  
+- [ ] Render culling  
+- [ ] Debug logging & crash capture  
+
+---
+
+## Getting Started
+
+### Manual `.jar` Installation
+
+- Download the latest release `.jar` from [Releases](https://github.com/rabbit-town-software/misa-engine/releases).
+- Add it as a library in your Java project.
+- Start building with core classes like `GameLoop`, `Renderer`, and `Camera`.
+
+### Gradle Installation (optional)
 
 ```gradle
 repositories {
@@ -72,109 +115,49 @@ dependencies {
 }
 ```
 
-Make sure you have a GitHub personal access token set as an environment variable.
+---
+
+## Privacy & License
+
+### Privacy Policy
+
+Misa Engine does **not** collect, track, or transmit any personal data.  
+There are no analytics, telemetry, or background network operations.  
+We believe software should work without surveillance.
+
+### License
+
+Misa Engine is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
+
+-✔️ Commercial use allowed  
+- ✔️ Modifications & redistribution permitted  
+- ❗ Derivative works must also be GPL-3.0 licensed  
 
 ---
 
-### 2. Basic Setup Example
+## Want to Contribute?
 
-Create a simple main class:
+We’re looking for:
 
-```java
-import misa.core.*;
+- Developers (Java)  
+- Testers (Engine & example games)  
+- Feedback from indie devs building RPGs
 
-public class MyGame
-{
-    public static void main(String[] args)
-    {
-        TimeSystem timeSystem = new TimeSystem(1.0f, new EventManager());
-        Camera camera = new Camera(0f, 0f, 20, 15);
-        Renderer renderer = new Renderer(camera, null, 32);
-        GameLoop gameLoop = new GameLoop(timeSystem, renderer);
-
-        GameWindow.create("My RPG Game", 800, 600, false, false, gameLoop);
-    }
-}
-```
-
-This will launch an empty game window!  
-You can then add:
-- Your map loading
-- Your player object
-- Basic event handling
-- Camera following
-- And more!
+Submit an issue, fork the repo, or just reach out.
 
 ---
 
-## **Development Timeline (Subject to Change)**
+## Contact
 
-### Major Update 1: Core Mechanics (Current Release)
-- [x] Time System
-- [x] Event System
-- [x] Animation System
-- [x] Camera System
-- [x] Game Loop
-- [x] Input Handling
-
-### Major Update 2: Physics (Next!)
-- [ ] Physics Engine (Movement, Collisions)
-
-### **Major Update 2: Physics**  
-- [ ] **Physics System** - In Depth Physics System (Collision, Movement, etc..)
-
-### **Major Update 3: Lighting & NPCs**  
-- [ ] Lighting System (Dynamic & static lighting)  
-- [ ] NPC System (Basic AI behavior)  
-
-### **Major Update 4: Save & Inventory**  
-- [ ] Save/Load System  
-- [ ] Inventory System  
-
-### **Major Update 5: UI & Dialogue**  
-- [ ] UI System (HUD, menus, overlays)  
-- [ ] Dialogue System (NPC interaction & branching text)  
-
-### **Major Update 6: Combat & Effects**  
-- [ ] Combat System (Turn-based mechanics)  
-- [ ] Particle System (Effects & weather)  
-- [ ] Audio System (Music & SFX)  
-
-### **Major Update 7: Scenes & Data**  
-- [ ] Database System (Storing game data)  
-- [ ] Scene Manager (Transitions between game areas)  
-- [ ] Cutscene Manager (Scripted sequences)  
-
-### **Major Update 8: Optimization & Stability**  
-- [ ] Culling (Render optimization)  
-- [ ] Object Pooling (Efficient memory use)  
-- [ ] Performance Monitoring (FPS tracking)  
-- [ ] Extended Logging (Debugging)  
-- [ ] Crash Reporting (Error handling)  
+- Email: [support@rabbittownsoftware.com](mailto:support@rabbittownsoftware.com)  
+- GitHub Issues: For bugs, suggestions, or feature requests
 
 ---
 
-## **Want to Contribute?**
+![Rabbit Town Software Logo](https://raw.githubusercontent.com/rabbit-town-software/misa-engine/master/assets/rabbittownlogo.jpg)
 
-I'm looking for:
-- **Developers** – Help expand engine features
-- **Testers** – Find bugs, suggest improvements
 
-Feel free to submit **Issues**, **Pull Requests**, or just reach out!
+<p align="center">
+  <b>Rabbit Town Software</b> — Open-source. No compromise.
+</p>
 
----
-
-## **Contact & Contribution**
-
-- **GitHub Issues** — Bug reports and feature suggestions
-- **Pull Requests** — Code contributions welcome
-- **Email:** [casepresley.dev@tuta.com](mailto:casepresley.dev@tuta.com)
-
----
-
-## **Final Notes**
-
-Misa Engine is still in **early alpha**. Everything is subject to change. Expect breaking changes in future updates.
-If you’re interested in **following development**, **testing** it out, or even **helping improve it**, feel free to jump in.
-
-**⭐ Star the repo if you like it! ⭐**
