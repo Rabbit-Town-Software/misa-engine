@@ -32,7 +32,7 @@
 - **Stage:** *Physics Update (in progress)*  
 - **Stability:** Early Alpha – Expect bugs and breaking changes
 
-The engine is usable for basic demos and sandbox development, but key systems like **physics, combat, and UI** are still being built out.
+The engine is usable for basic demos and sandbox development, but key systems like **physics, combat, and UI** are still being built out. This is a long-term passion project. I don't plan on commiting to this fully as of right now, so you should expect long intervals between me actually working on this. One day it will get done... I hope...
 
 ---
 
